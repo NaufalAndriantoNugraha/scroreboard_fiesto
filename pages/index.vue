@@ -267,6 +267,10 @@ export default {
                 case "down":
                     this.quarter = this.quarter - 1 < 0 ? 0 : this.quarter - 1;
                     break;
+                
+                case "reset":
+                    this.quarter = 1;
+                    break;
 
                 default:
                     break;
@@ -357,6 +361,11 @@ export default {
                     }
                     break;
 
+                case "reset":
+                    this.teamA.score = 0;
+                    this.teamB.score = 0;
+                    break;
+
                 default:
                     break;
             }
@@ -397,6 +406,11 @@ export default {
                         default:
                             break;
                     }
+                    break;
+
+                case "reset":
+                    this.teamA.foul = 0;
+                    this.teamB.foul = 0;
                     break;
 
                 default:
@@ -445,6 +459,11 @@ export default {
                         default:
                             break;
                     }
+                    break;
+                
+                case "reset":
+                    this.teamA.timeout = 0;
+                    this.teamB.timeout = 0;
                     break;
 
                 default:

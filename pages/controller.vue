@@ -111,6 +111,11 @@
                     class="bg-amber-500 hover:bg-amber-600 active:bg-amber-900 text-white font-bold py-2 px-4 m-2 rounded">Toggle
                     Top
                     Player</button>
+                <button
+                    @click="reset" 
+                    class="bg-amber-500 hover:bg-amber-600 active:bg-amber-900 text-white font-bold py-2 px-4 m-2 rounded"
+                >Reset
+            </button>
             </div>
             <div class="flex justify-center items-center w-full">
               <button @click="openAdDirectory"
@@ -437,6 +442,12 @@ export default {
         },
         async closeApp() {
             invoke('close_all_processes');
+        },
+        async reset() {
+            this.emitEvent('foul_step_event', {step: "reset"});
+            this.emitEvent('score_step_event', {step: "reset"});
+            this.emitEvent('timeout_step_event', {step: "reset"});
+            this.emitEvent('quarter_step_event', {step: 'reset'});
         }        
     }
 }
