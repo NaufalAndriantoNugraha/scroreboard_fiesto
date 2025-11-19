@@ -201,6 +201,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { emit, listen } from "@tauri-apps/api/event";
 import type { TeamInfo } from "~/types/TeamInfo";
 import { doc, updateDoc } from "firebase/firestore";
+import { event } from "@tauri-apps/api";
 
 export default {
     data() {
@@ -237,6 +238,9 @@ export default {
     async mounted() {
         await listen("start_timer_event", (event: any) => {
             this.startTimer(event.payload.initialTime);
+        });
+        await listen('reset_timer_event', (event: any) => {
+            this.resetTimer();
         });
         await listen("stop_timer_event", (event: any) => {
             this.stopTimer();
@@ -604,6 +608,12 @@ export default {
                     }
                 }, 10);
             }
+        },
+
+        resetTimer() {
+            this.time = 0;
+            this.stopTimer();
+            invoke('update_time', { time: this.formatedTime });
         },
         stopTimer() {
             this.isRunning = false;
