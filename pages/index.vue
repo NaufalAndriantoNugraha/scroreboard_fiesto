@@ -42,7 +42,7 @@
                 <div class="logo-header">
                     <img src="../assets/img/logo.svg" />
                 </div>
-                <div class="label-header">
+                <div class="label-header font-roboto-condensed">
                     <div class="left-label label-score">
                         <div>
                             {{ teamA.name != "" ? teamA.name : "Terang" }}
@@ -88,7 +88,8 @@
                         ></div>
                     </div>
                 </div>
-                <div class="timer font-martianMono">
+                <div
+                    class="timer font-noto">
                     <div
                         v-if="!isTimeout"
                         class="timer quarter font-basementGrotesque"
@@ -643,6 +644,10 @@ export default {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
+
 /* :root {
     --light1: #67bbf7;
     --light2: #1c448c;
@@ -658,7 +663,14 @@ export default {
     font-family: BasementGrotesque;
     src: url("BasementGrotesque.otf") format("opentype");
 } */
-
+.font-noto{
+    font-family: "Noto Sans", sans-serif;
+    font-weight: 900;
+}
+.font-roboto-condensed{
+    font-family: "Roboto Condensed", sans-serif;
+    font-weight: bolder !important;
+}
 div#handle button {
     opacity: 0;
 }
@@ -741,7 +753,7 @@ div.wrapper-score {
     padding: 10px;
     top: -64px;
     position: relative;
-    z-index: 1;
+    z-index: 3;
     border: 5px solid #fff;
 }
 
@@ -790,16 +802,15 @@ div.wrapper-score {
 }
 
 .label-score {
-    width: 39%;
+    width: 44%;
     background: linear-gradient(180deg, var(--light1) 20%, var(--light2) 96%);
     color: var(--lightcolor);
-    font-weight: normal;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-align: center;
     border-radius: 10px 10px 0 0;
     padding: 0;
-    font-size: 20pt;
+    font-size: 40pt;
     position: relative;
     display: flex;
     align-items: center;
@@ -949,7 +960,7 @@ div.wrapper-score {
 
 .timer {
     color: #ff0;
-    font-size: 56pt;
+    font-size: 65pt;
     border: 5px solid #e1e1e1;
     border-radius: 15px;
     padding: 2px 20px 4px;
@@ -961,7 +972,7 @@ div.wrapper-score {
     background: linear-gradient(180deg, var(--light1) 20%, var(--light2) 60%);
     text-align: center;
     font-size: 50pt;
-    padding: 10px 0 0px;
+    padding: 15px 0 6px;
     border: 5px solid #fff;
     color: var(--lightcolor);
     line-height: 1;
@@ -1053,17 +1064,17 @@ img.light-right {
     left: 50%;
     transform: translate(-50%);
     bottom: 100%;
-    font-size: 33pt;
+    font-size: 35pt;
     width: 91px;
     text-align: center;
     margin-bottom: 20px;
-    padding: 9px 0 0;
-    height: 61px;
+    padding: 19px 0 15px;
+    height: 81px;
     display: flex;
     align-items: center;
-    color: #202538;
+    color: #fff;
     justify-content: center;
-    background: linear-gradient(180deg, #ff0 20%, #aa0 60%);
+    /* background: linear-gradient(180deg, #ff0 20%, #aa0 60%); */
 }
 
 .label-quarter {
