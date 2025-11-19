@@ -114,6 +114,13 @@
         "url": "/splashscreen",
         "label": "splashscreen",
         "title": "Scoreboard Splashscreen"
+      },
+      {
+        "width": 500,
+        "height": 500,
+        "url": "/scoreboard_alternative",
+        "label": "scoreboard_alternative",
+        "title": "Alternative Scoreboard Window"
       }
     ]
   }
