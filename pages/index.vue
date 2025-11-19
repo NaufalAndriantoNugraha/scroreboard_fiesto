@@ -1,21 +1,42 @@
 <template>
-    <div class="fixed container-body font-basementGrotesque bg-[url('~/assets/img/mock.jpg')]">
-        <div data-tauri-drag-region class="flex items-center justify-end h-[5%] w-full bg-slate-300 hover:cursor-move"
-            id="handle">
-            <span data-tauri-drag-region class="w-full text-center text-2xl font-bold">Controller</span>
-            <button class="bg-blue-500 hover:bg-blue-600 active:bg-blue-900 text-white font-bold py-2 px-4 rounded"
-                @click="toggleFullscreen">o</button>
+    <div
+        class="fixed container-body font-basementGrotesque bg-[url('~/assets/img/mock.jpg')]"
+    >
+        <div
+            data-tauri-drag-region
+            class="flex items-center justify-end h-[5%] w-full bg-slate-300 hover:cursor-move"
+            id="handle"
+        >
+            <span
+                data-tauri-drag-region
+                class="w-full text-center text-2xl font-bold"
+                >Controller</span
+            >
+            <button
+                class="bg-blue-500 hover:bg-blue-600 active:bg-blue-900 text-white font-bold py-2 px-4 rounded"
+                @click="toggleFullscreen"
+            >
+                o
+            </button>
         </div>
         <div class="bg-iframe">
             <!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/Ps-0f0K6izM?si=mj9tm8_keiaPgwZC&autoplay=1&controls=0&loop=1&showinfo=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> -->
             <video width="320" height="240" autoplay loop muted id="bgVideo">
-                <source src="../assets/video/bg-video.mp4" type="video/mp4">
+                <source src="../assets/video/bg-video.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
         </div>
         <div class="wrapper-score">
-            <img src="../assets//img/light-slim.png" alt="" class="light-left" />
-            <img src="../assets//img/light-slim.png" alt="" class="light-right" />
+            <img
+                src="../assets//img/light-slim.png"
+                alt=""
+                class="light-left"
+            />
+            <img
+                src="../assets//img/light-slim.png"
+                alt=""
+                class="light-right"
+            />
             <div class="header-score">
                 <div class="bg-header"></div>
                 <div class="logo-header">
@@ -23,10 +44,12 @@
                 </div>
                 <div class="label-header">
                     <div class="left-label label-score">
-                        <div>{{ teamA.name != '' ? teamA.name : 'Terang' }}</div>
+                        <div>
+                            {{ teamA.name != "" ? teamA.name : "Terang" }}
+                        </div>
                     </div>
                     <div class="right-label label-score">
-                        <div>{{ teamB.name != '' ? teamB.name : 'Gelap' }}</div>
+                        <div>{{ teamB.name != "" ? teamB.name : "Gelap" }}</div>
                     </div>
                 </div>
             </div>
@@ -35,11 +58,19 @@
                 <div class="score-block">
                     <div class="left-score score-count">
                         <div>{{ teamA.score }}</div>
-                        <img src="../assets//img/light-slim.png" alt="" class="light-score" />
+                        <img
+                            src="../assets//img/light-slim.png"
+                            alt=""
+                            class="light-score"
+                        />
                     </div>
                     <div class="right-score score-count">
                         <div>{{ teamB.score }}</div>
-                        <img src="../assets//img/light-slim.png" alt="" class="light-score" />
+                        <img
+                            src="../assets//img/light-slim.png"
+                            alt=""
+                            class="light-score"
+                        />
                     </div>
                 </div>
             </div>
@@ -50,21 +81,34 @@
                         <div class="foul-count">{{ teamA.foul }}</div>
                     </div>
                     <div class="timout-count">
-                        <div v-for="n in 3" :class="n <= teamA.timeout ? 'active' : ''" class="list-timout"></div>
+                        <div
+                            v-for="n in 3"
+                            :class="n <= teamA.timeout ? 'active' : ''"
+                            class="list-timout"
+                        ></div>
                     </div>
                 </div>
                 <div class="timer font-martianMono">
-                    <div v-if="!isTimeout" class="timer quarter font-basementGrotesque">
-                        <div class="label-quarter">QUARTER</div>{{ quarter }}
+                    <div
+                        v-if="!isTimeout"
+                        class="timer quarter font-basementGrotesque"
+                    >
+                        <div class="label-quarter">QUARTER</div>
+                        {{ quarter }}
                     </div>
                     <div v-else class="timer quarter font-basementGrotesque">
-                        <div class="label-quarter">TIMEOUT</div>{{ formatedTimeout }}
+                        <div class="label-quarter">TIMEOUT</div>
+                        {{ formatedTimeout }}
                     </div>
                     {{ formatedTime }}
                 </div>
                 <div class="foul-team right-foul">
                     <div class="timout-count">
-                        <div v-for="n in 3" :class="n <= teamB.timeout ? 'active' : ''" class="list-timout"></div>
+                        <div
+                            v-for="n in 3"
+                            :class="n <= teamB.timeout ? 'active' : ''"
+                            class="list-timout"
+                        ></div>
                     </div>
                     <div>
                         <h3>TEAM FOUL</h3>
@@ -94,26 +138,57 @@
                 <TeamInfo name="Team 2" :info="teamB" />
             </div>
         </div> -->
-        <div :class="{ 'layer-active opacity-100 layer-popup': isBannerShown, 'opacity-0 layer-popup': !isBannerShown }"
-            class="fixed inset-0 w-screen h-screen flex items-center justify-center bg-opacity-0">
+        <div
+            :class="{
+                'layer-active opacity-100 layer-popup': isBannerShown,
+                'opacity-0 layer-popup': !isBannerShown,
+            }"
+            class="fixed inset-0 w-screen h-screen flex items-center justify-center bg-opacity-0"
+        >
             <div class="relativeshadow-lg w-screen">
-                <span class="absolute cursor-pointer p-4" @click="isBannerShown = false">x</span>
+                <span
+                    class="absolute cursor-pointer p-4"
+                    @click="isBannerShown = false"
+                    >x</span
+                >
                 <div>
-                    <iframe class="w-screen h-screen" :src="previewUrl" frameborder="0"></iframe>
+                    <iframe
+                        class="w-screen h-screen"
+                        :src="previewUrl"
+                        frameborder="0"
+                    ></iframe>
                 </div>
             </div>
         </div>
 
-        <div v-show="is3Point" class="flex justify-center items-center h-screen bg-black">
-            <video ref="threePointPlayer" class="w-full h-full" controls @click="toggleFullscreen">
-                <source src="../assets/video/3point.mp4" type="video/mp4">
+        <div
+            v-show="is3Point"
+            class="flex justify-center items-center h-screen bg-black"
+            style="z-index: 100"
+        >
+            <video
+                ref="threePointPlayer"
+                class="w-full h-full"
+                controls
+                @click="toggleFullscreen"
+            >
+                <source src="../assets/video/3point.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
         </div>
 
-        <div v-show="isAndOne" class="flex justify-center items-center h-screen bg-black">
-            <video ref="andOnePlayer" class="w-full h-full" controls @click="toggleFullscreen">
-                <source src="../assets/video/and_one.mp4" type="video/mp4">
+        <div
+            v-show="isAndOne"
+            class="flex justify-center items-center h-screen bg-black"
+            style="z-index: 100"
+        >
+            <video
+                ref="andOnePlayer"
+                class="w-full h-full"
+                controls
+                @click="toggleFullscreen"
+            >
+                <source src="../assets/video/and_one.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
         </div>
@@ -121,10 +196,10 @@
 </template>
 
 <script lang="ts">
-import { invoke } from '@tauri-apps/api/tauri';
-import { emit, listen } from '@tauri-apps/api/event';
-import type { TeamInfo } from '~/types/TeamInfo';
-import { doc, updateDoc } from 'firebase/firestore';
+import { invoke } from "@tauri-apps/api/tauri";
+import { emit, listen } from "@tauri-apps/api/event";
+import type { TeamInfo } from "~/types/TeamInfo";
+import { doc, updateDoc } from "firebase/firestore";
 
 export default {
     data() {
@@ -138,121 +213,120 @@ export default {
             isRunning: false as boolean,
             isTimeout: false as boolean,
             isBannerShown: false as boolean,
-            previewUrl: '' as string,
+            previewUrl: "" as string,
             is3Point: false as boolean,
             isAndOne: false as boolean,
             quarter: 0 as number,
             teamA: {
-                name: '',
-                picture: '',
+                name: "",
+                picture: "",
                 score: 0,
                 foul: 0,
-                timeout: 0
+                timeout: 0,
             } as TeamInfo,
             teamB: {
-                name: '',
-                picture: '',
+                name: "",
+                picture: "",
                 score: 0,
                 foul: 0,
-                timeout: 0
+                timeout: 0,
             } as TeamInfo,
-        }
+        };
     },
     async mounted() {
-        await listen('start_timer_event', (event: any) => {
+        await listen("start_timer_event", (event: any) => {
             this.startTimer(event.payload.initialTime);
-        })
-        await listen('stop_timer_event', (event: any) => {
+        });
+        await listen("stop_timer_event", (event: any) => {
             this.stopTimer();
-        })
-        await listen('start_timeout_event', (event: any) => {
+        });
+        await listen("start_timeout_event", (event: any) => {
             this.startTimeout(event.payload.team, event.payload.initialTime);
-        })
-        await listen('stop_timeout_event', (event: any) => {
+        });
+        await listen("stop_timeout_event", (event: any) => {
             this.stopTimeout();
-        })
-        await listen('show_banner', (event: any) => {
+        });
+        await listen("show_banner", (event: any) => {
             this.showBanner(event.payload.url);
-        })
-        await listen('hide_banner', (event: any) => {
+        });
+        await listen("hide_banner", (event: any) => {
             this.hideBanner();
-        })
-        await listen('quarter_event', (event: any) => {
+        });
+        await listen("quarter_event", (event: any) => {
             this.quarter = event.payload.quarter;
-            invoke('update_quarter', { quarter: this.quarter })
-        })
+            invoke("update_quarter", { quarter: this.quarter });
+        });
 
-        await listen('quarter_step_event', (event: any) => {
+        await listen("quarter_step_event", (event: any) => {
             switch (event.payload.step) {
-                case 'up':
+                case "up":
                     this.quarter += 1;
                     break;
 
-                case 'down':
+                case "down":
                     this.quarter = this.quarter - 1 < 0 ? 0 : this.quarter - 1;
                     break;
 
                 default:
                     break;
             }
-        })
+        });
 
-        await listen('change_time_event', (event: any) => {
-            this.time = this.time + (event.payload.value * 1000);
-        })
+        await listen("change_time_event", (event: any) => {
+            this.time = this.time + event.payload.value * 1000;
+        });
 
-        await listen('team_name_event', (event: any) => {
+        await listen("team_name_event", (event: any) => {
             switch (event.payload.team) {
-                case 'teamA':
+                case "teamA":
                     this.teamA.name = event.payload.name;
                     break;
 
-                case 'teamB':
+                case "teamB":
                     this.teamB.name = event.payload.name;
                     break;
 
                 default:
                     break;
             }
-        })
+        });
 
-        await listen('3point_event', (event: any) => {
+        await listen("3point_event", (event: any) => {
             this.is3Point = true;
-            const videoElement = this.$refs.threePointPlayer as HTMLVideoElement;
+            const videoElement = this.$refs
+                .threePointPlayer as HTMLVideoElement;
             if (videoElement) {
-                videoElement.play()
-                    .catch(error => {
-                        console.error("Error attempting to play video:", error);
-                    });
+                videoElement.play().catch((error) => {
+                    console.error("Error attempting to play video:", error);
+                });
                 setTimeout(() => {
                     this.is3Point = false;
                 }, 3000);
             }
-        })
+        });
 
-        await listen('and_one_event', (event: any) => {
+        await listen("and_one_event", (event: any) => {
             this.isAndOne = true;
             const videoElement = this.$refs.andOnePlayer as HTMLVideoElement;
             if (videoElement) {
-                videoElement.play()
-                    .catch(error => {
-                        console.error("Error attempting to play video:", error);
-                    });
+                videoElement.play().catch((error) => {
+                    console.error("Error attempting to play video:", error);
+                });
                 setTimeout(() => {
                     this.isAndOne = false;
                 }, 3000);
             }
-        })
+        });
 
-        await listen('score_step_event', (event: any) => {
+        await listen("score_step_event", (event: any) => {
             switch (event.payload.step) {
-                case 'up':
+                case "up":
                     switch (event.payload.team) {
-                        case 'teamA':
+                        case "teamA":
                             this.teamA.score += 1;
                             break;
 
-                        case 'teamB':
+                        case "teamB":
                             this.teamB.score += 1;
                             break;
 
@@ -261,14 +335,20 @@ export default {
                     }
                     break;
 
-                case 'down':
+                case "down":
                     switch (event.payload.team) {
-                        case 'teamA':
-                            this.teamA.score = this.teamA.score - 1 < 0 ? 0 : this.teamA.score - 1;
+                        case "teamA":
+                            this.teamA.score =
+                                this.teamA.score - 1 < 0
+                                    ? 0
+                                    : this.teamA.score - 1;
                             break;
 
-                        case 'teamB':
-                            this.teamB.score = this.teamB.score - 1 < 0 ? 0 : this.teamB.score - 1;
+                        case "teamB":
+                            this.teamB.score =
+                                this.teamB.score - 1 < 0
+                                    ? 0
+                                    : this.teamB.score - 1;
                             break;
 
                         default:
@@ -279,16 +359,16 @@ export default {
                 default:
                     break;
             }
-        })
-        await listen('foul_step_event', (event: any) => {
+        });
+        await listen("foul_step_event", (event: any) => {
             switch (event.payload.step) {
-                case 'up':
+                case "up":
                     switch (event.payload.team) {
-                        case 'teamA':
+                        case "teamA":
                             this.teamA.foul += 1;
                             break;
 
-                        case 'teamB':
+                        case "teamB":
                             this.teamB.foul += 1;
                             break;
 
@@ -297,14 +377,20 @@ export default {
                     }
                     break;
 
-                case 'down':
+                case "down":
                     switch (event.payload.team) {
-                        case 'teamA':
-                            this.teamA.foul = this.teamA.foul - 1 < 0 ? 0 : this.teamA.foul - 1;
+                        case "teamA":
+                            this.teamA.foul =
+                                this.teamA.foul - 1 < 0
+                                    ? 0
+                                    : this.teamA.foul - 1;
                             break;
 
-                        case 'teamB':
-                            this.teamB.foul = this.teamB.foul - 1 < 0 ? 0 : this.teamB.foul - 1;
+                        case "teamB":
+                            this.teamB.foul =
+                                this.teamB.foul - 1 < 0
+                                    ? 0
+                                    : this.teamB.foul - 1;
                             break;
 
                         default:
@@ -315,17 +401,23 @@ export default {
                 default:
                     break;
             }
-        })
-        await listen('timeout_step_event', (event: any) => {
+        });
+        await listen("timeout_step_event", (event: any) => {
             switch (event.payload.step) {
-                case 'up':
+                case "up":
                     switch (event.payload.team) {
-                        case 'teamA':
-                            this.teamA.timeout = this.teamA.timeout + 1 > 3 ? 3 : this.teamA.timeout + 1;
+                        case "teamA":
+                            this.teamA.timeout =
+                                this.teamA.timeout + 1 > 3
+                                    ? 3
+                                    : this.teamA.timeout + 1;
                             break;
 
-                        case 'teamB':
-                            this.teamB.timeout = this.teamB.timeout + 1 > 3 ? 3 : this.teamB.timeout + 1;
+                        case "teamB":
+                            this.teamB.timeout =
+                                this.teamB.timeout + 1 > 3
+                                    ? 3
+                                    : this.teamB.timeout + 1;
                             break;
 
                         default:
@@ -333,14 +425,20 @@ export default {
                     }
                     break;
 
-                case 'down':
+                case "down":
                     switch (event.payload.team) {
-                        case 'teamA':
-                            this.teamA.timeout = this.teamA.timeout - 1 < 0 ? 0 : this.teamA.timeout - 1;
+                        case "teamA":
+                            this.teamA.timeout =
+                                this.teamA.timeout - 1 < 0
+                                    ? 0
+                                    : this.teamA.timeout - 1;
                             break;
 
-                        case 'teamB':
-                            this.teamB.timeout = this.teamB.timeout - 1 < 0 ? 0 : this.teamB.timeout - 1;
+                        case "teamB":
+                            this.teamB.timeout =
+                                this.teamB.timeout - 1 < 0
+                                    ? 0
+                                    : this.teamB.timeout - 1;
                             break;
 
                         default:
@@ -351,45 +449,45 @@ export default {
                 default:
                     break;
             }
-        })
+        });
     },
     watch: {
         teamA: {
             handler(newVal, oldVal) {
-                console.log(newVal, oldVal)
-                emit('team_a_event', {
+                console.log(newVal, oldVal);
+                emit("team_a_event", {
                     teamA: {
                         name: this.teamA.name,
                         score: this.teamA.score,
                         foul: this.teamA.foul,
-                        timeout: this.teamA.timeout
+                        timeout: this.teamA.timeout,
                     },
-                })
+                });
             },
-            deep: true
+            deep: true,
         },
         teamB: {
             handler(newVal, oldVal) {
-                console.log(newVal, oldVal)
-                emit('team_b_event', {
+                console.log(newVal, oldVal);
+                emit("team_b_event", {
                     teamB: {
                         name: this.teamB.name,
                         score: this.teamB.score,
                         foul: this.teamB.foul,
-                        timeout: this.teamB.timeout
+                        timeout: this.teamB.timeout,
                     },
-                })
+                });
             },
-            deep: true
+            deep: true,
         },
         quarter: {
             handler(newVal, oldVal) {
-                console.log(newVal, oldVal)
-                emit('quarter_event', {
-                    quarter: this.quarter
-                })
+                console.log(newVal, oldVal);
+                emit("quarter_event", {
+                    quarter: this.quarter,
+                });
             },
-        }
+        },
     },
     computed: {
         formatedTime() {
@@ -398,11 +496,23 @@ export default {
                 const seconds = Math.floor(this.time / 1000) % 60;
                 const minutes = Math.floor(this.time / (1000 * 60)) % 60;
 
-                const strMinutes = String((minutes < 10) ? "0" + minutes.toFixed(0) : minutes.toFixed(0));
-                const strSeconds = String((seconds < 10) ? "0" + seconds.toFixed(0) : seconds.toFixed(0));
-                const strMilliseconds = String((milliseconds < 10) ? "0" + milliseconds.toFixed(0) : milliseconds.toFixed(0));
+                const strMinutes = String(
+                    minutes < 10
+                        ? "0" + minutes.toFixed(0)
+                        : minutes.toFixed(0),
+                );
+                const strSeconds = String(
+                    seconds < 10
+                        ? "0" + seconds.toFixed(0)
+                        : seconds.toFixed(0),
+                );
+                const strMilliseconds = String(
+                    milliseconds < 10
+                        ? "0" + milliseconds.toFixed(0)
+                        : milliseconds.toFixed(0),
+                );
 
-                return strMinutes + ":" + strSeconds;// + "." + strMilliseconds;
+                return strMinutes + ":" + strSeconds; // + "." + strMilliseconds;
             } else {
                 const milliseconds = (this.time % 1000) / 10;
                 const seconds = Math.floor(this.time / 1000) % 60;
@@ -415,32 +525,40 @@ export default {
             const seconds = Math.floor(this.timeout / 1000) % 60;
             const minutes = Math.floor(this.timeout / (1000 * 60)) % 60;
 
-            const strMinutes = String((minutes < 10) ? "0" + minutes.toFixed(0) : minutes.toFixed(0));
-            const strSeconds = String((seconds < 10) ? "0" + seconds.toFixed(0) : seconds.toFixed(0));
-            const strMilliseconds = String((milliseconds < 10) ? "0" + milliseconds.toFixed(0) : milliseconds.toFixed(0));
+            const strMinutes = String(
+                minutes < 10 ? "0" + minutes.toFixed(0) : minutes.toFixed(0),
+            );
+            const strSeconds = String(
+                seconds < 10 ? "0" + seconds.toFixed(0) : seconds.toFixed(0),
+            );
+            const strMilliseconds = String(
+                milliseconds < 10
+                    ? "0" + milliseconds.toFixed(0)
+                    : milliseconds.toFixed(0),
+            );
 
             return strSeconds;
         },
         quarterName() {
             switch (String(this.quarter)) {
                 case "1":
-                    return 'Q1';
+                    return "Q1";
                 case "2":
-                    return 'Q2';
+                    return "Q2";
                 case "3":
-                    return 'Q3';
+                    return "Q3";
                 case "4":
-                    return 'Q4';
+                    return "Q4";
                 case "5":
-                    return 'OT';
+                    return "OT";
                 default:
-                    return '';
+                    return "";
             }
-        }
+        },
     },
     methods: {
         toggleFullscreen() {
-            invoke('toggle_fullscreen');
+            invoke("toggle_fullscreen");
         },
         startTimer(initialTime: number = 600000) {
             // const adsWindow = new WebviewWindow('ads');
@@ -454,15 +572,15 @@ export default {
                     this.timerUpdateCounter += 1;
                     if (this.timerUpdateCounter >= 10) {
                         this.timerUpdateCounter = 0;
-                        invoke('update_time', { time: this.formatedTime });
-                        emit('timer_event', { value: this.time });
+                        invoke("update_time", { time: this.formatedTime });
+                        emit("timer_event", { value: this.time });
                     }
                     this.time -= 10; // Increment every 10 milliseconds
                     if (this.time <= 0) {
                         this.time = 0;
                         this.stopTimer();
-                        emit('timer_event', { value: this.time });
-                        emit('timer_stop_event');
+                        emit("timer_event", { value: this.time });
+                        emit("timer_stop_event");
                     }
                 }, 10);
             }
@@ -472,7 +590,7 @@ export default {
             clearInterval(this.timer);
         },
         startTimeout(team: String, initialTime: number = 60000) {
-            console.log(team)
+            console.log(team);
             if (!this.isTimeout) {
                 this.isTimeout = true;
                 this.timeout = initialTime;
@@ -480,12 +598,12 @@ export default {
                     this.timeoutUpdateCounter += 1;
                     if (this.timeoutUpdateCounter >= 10) {
                         this.timeoutUpdateCounter = 0;
-                        emit('timeout_event', { value: this.timeout });
+                        emit("timeout_event", { value: this.timeout });
                     }
                     this.timeout -= 10;
                     if (this.timeout <= 0) {
                         this.stopTimeout();
-                        emit('timeout_event', { value: this.timeout });
+                        emit("timeout_event", { value: this.timeout });
                     }
                 }, 10);
             }
@@ -508,21 +626,20 @@ export default {
             const { $firestore: firestore } = useNuxtApp();
 
             // Reference to a document in Firestore
-            const docRef = doc(firestore, 'scoreboard_timer', 'stream1');
+            const docRef = doc(firestore, "scoreboard_timer", "stream1");
 
             try {
                 await updateDoc(docRef, {
                     minutes: this.formatedTime, // Fields to update
                     // ... more fields to update
                 });
-                console.log('Document updated successfully');
+                console.log("Document updated successfully");
             } catch (error) {
-                console.error('Error updating document: ', error);
+                console.error("Error updating document: ", error);
             }
-
-        }
+        },
     },
-}
+};
 </script>
 
 <style scoped>
@@ -603,7 +720,7 @@ div.wrapper-score {
     margin-top: 60px;
 }
 
-@media(min-width: 1700px) {
+@media (min-width: 1700px) {
     div.wrapper-score {
         transform: scale(1.3);
     }
@@ -636,11 +753,13 @@ div.wrapper-score {
     height: 100%;
     right: -40px;
     top: 0;
-    background: linear-gradient(180deg,
-            rgba(254, 255, 254, 1) 25%,
-            rgba(164, 164, 164, 1) 52%,
-            rgb(147 147 147) 62%,
-            rgb(199 199 199) 91%);
+    background: linear-gradient(
+        180deg,
+        rgba(254, 255, 254, 1) 25%,
+        rgba(164, 164, 164, 1) 52%,
+        rgb(147 147 147) 62%,
+        rgb(199 199 199) 91%
+    );
     transform: skew(-8deg);
     border-radius: 5px 5px 15px 5px;
 }
@@ -653,11 +772,13 @@ div.wrapper-score {
     height: 100%;
     left: -40px;
     top: 0;
-    background: linear-gradient(180deg,
-            rgba(254, 255, 254, 1) 25%,
-            rgba(164, 164, 164, 1) 52%,
-            rgb(147 147 147) 62%,
-            rgb(199 199 199) 91%);
+    background: linear-gradient(
+        180deg,
+        rgba(254, 255, 254, 1) 25%,
+        rgba(164, 164, 164, 1) 52%,
+        rgb(147 147 147) 62%,
+        rgb(199 199 199) 91%
+    );
     transform: skew(8deg);
     border-radius: 5px 5px 5px 15px;
 }
@@ -686,7 +807,6 @@ div.wrapper-score {
     height: 73px;
     padding-top: 17px;
     line-height: normal;
-
 }
 
 .label-score div {
@@ -798,9 +918,7 @@ div.wrapper-score {
     border-radius: 12px;
     height: calc(100% - 20px);
     left: 10px;
-    background: linear-gradient(180deg,
-            var(--light1) 20%,
-            var(--light2) 60%);
+    background: linear-gradient(180deg, var(--light1) 20%, var(--light2) 60%);
 }
 
 .right-score.score-count {
@@ -840,9 +958,7 @@ div.wrapper-score {
 }
 
 .foul-count {
-    background: linear-gradient(180deg,
-            var(--light1) 20%,
-            var(--light2) 60%);
+    background: linear-gradient(180deg, var(--light1) 20%, var(--light2) 60%);
     text-align: center;
     font-size: 50pt;
     padding: 10px 0 0px;
