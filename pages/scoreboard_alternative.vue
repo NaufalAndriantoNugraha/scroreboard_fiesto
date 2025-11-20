@@ -48,7 +48,10 @@ h1 {
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-top: 40px;
+  background-color: black;
+  color: white;
+  width: 100%;
+  height: 100vh;
 }
 
 .scoreboard-container {
