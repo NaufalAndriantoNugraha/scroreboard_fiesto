@@ -166,6 +166,33 @@
             </div>
         </div>
     </div>
+    <!-- Popup reset timer dan game -->
+     <div v-if="showResetConfirm" 
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">
+            Konfirmasi Reset
+        </h2>
+        <p class="text-gray-600 mb-6 text-lg">
+            {{ resetType === 'timer' 
+                ? 'Apakah Anda yakin ingin mereset timer?' 
+                : 'Apakah Anda yakin ingin mereset seluruh game (score, foul, timeout, quarter, dan timer)?' 
+            }}
+        </p>
+        <div class="flex justify-end gap-3">
+            <button 
+                @click="cancelReset"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded">
+                Batal
+            </button>
+            <button 
+                @click="confirmReset"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded">
+                Ya, Reset
+            </button>
+        </div>
+    </div>
+</div>
 </template>
 
 <script lang="ts">
@@ -250,7 +277,9 @@ export default {
             isSerialConnected: false as boolean,
             isNotifShown: false as boolean,
             notificationStatus: '' as 'success' | 'failed',
-            notificationMessage: '' as string
+            notificationMessage: '' as string,
+            showResetConfirm: false as boolean,
+            resetType: '' as 'timer' | 'game' | '',
         }
     },
     mounted() {
@@ -449,18 +478,52 @@ export default {
             invoke('close_all_processes');
         },
 
+        // async resetTimer() {
+        //     this.time = 0;
+        //     emit('reset_timer_event');
+        // },
+
+        // async resetGame() {
+        //     this.emitEvent('foul_step_event', {step: "reset"});
+        //     this.emitEvent('score_step_event', {step: "reset"});
+        //     this.emitEvent('timeout_step_event', {step: "reset"});
+        //     this.emitEvent('quarter_step_event', {step: 'reset'});
+        //     this.resetTimer();
+        // }        
         async resetTimer() {
-            this.time = 0;
-            emit('reset_timer_event');
+            // Tampilkan konfirmasi dulu
+            this.showResetConfirm = true;
+            this.resetType = 'timer';
         },
 
         async resetGame() {
-            this.emitEvent('foul_step_event', {step: "reset"});
-            this.emitEvent('score_step_event', {step: "reset"});
-            this.emitEvent('timeout_step_event', {step: "reset"});
-            this.emitEvent('quarter_step_event', {step: 'reset'});
-            this.resetTimer();
-        }        
+            this.showResetConfirm = true;
+            this.resetType = 'game';
+        },
+
+        async confirmReset() {
+            if (this.resetType === 'timer') {
+                this.time = 0;
+                emit('reset_timer_event');
+                this.showNotif('success', 'Timer berhasil direset');
+            } else if (this.resetType === 'game') {
+                this.emitEvent('foul_step_event', {step: "reset"});
+                this.emitEvent('score_step_event', {step: "reset"});
+                this.emitEvent('timeout_step_event', {step: "reset"});
+                this.emitEvent('quarter_step_event', {step: 'reset'});
+                this.time = 0;
+                emit('reset_timer_event');
+                this.showNotif('success', 'Game berhasil direset');
+            }
+        
+            this.showResetConfirm = false;
+            this.resetType = '';
+        },
+
+        async cancelReset() {
+            this.showResetConfirm = false;
+            this.resetType = '';
+        },
     }
 }
 </script>

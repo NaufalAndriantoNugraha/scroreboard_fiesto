@@ -22,8 +22,8 @@
           <p>Team Name</p>
           <p>{{ teamB.name }}</p>
         </div>
-        <p>Score: {{ teamA.score }}</p>
-        <p>Foul: {{ teamA.foul }}</p>
+        <p>Score: {{ teamB.score }}</p>
+        <p>Foul: {{ teamB.foul }}</p>
         <div v-if="!isTimeout">
           <p>Quarter: {{ quarter }}</p>
         </div>
