@@ -211,7 +211,6 @@ import { ref } from 'vue'
 import { open } from '@tauri-apps/api/dialog';
 import { appDataDir } from '@tauri-apps/api/path';
 
-
 type PreviewUrl = {
     'scorer_url': string,
     'dark_statistic_url': string,
@@ -298,6 +297,8 @@ export default {
     },
     mounted() {
         this.fetchSerialPorts();
+        // ws = new WebSocket("ws://192.168.11.1:8070");
+        // ws = new WebSocket('ws://192.168.18.251:8070');
 
         listen('timer_event', (event: any) => {
             this.time = event.payload.value;

@@ -208,6 +208,21 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { event } from '@tauri-apps/api';
 import { readDir } from '@tauri-apps/api/fs';
 
+let ws: WebSocket | null = null;
+
+function initWS() {
+  ws = new WebSocket("ws://192.168.18.251:8070");
+
+  ws.onopen = () => console.log("WS Connected");
+  ws.onclose = () => console.log("WS Disconnected");
+}
+
+function sendWS(data: any) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(data));
+  }
+}
+
 export default {
   data() {
     return {
@@ -245,21 +260,27 @@ export default {
     };
   },
   async mounted() {
-    
+    initWS();
+
     await listen('start_timer_event', (event: any) => {
       this.startTimer(event.payload.initialTime);
+      this.broadcastState();
     });
     await listen('reset_timer_event', (event: any) => {
       this.resetTimer();
+      this.broadcastState();
     });
     await listen('stop_timer_event', (event: any) => {
       this.stopTimer();
+      this.broadcastState();
     });
     await listen('start_timeout_event', (event: any) => {
       this.startTimeout(event.payload.team, event.payload.initialTime);
+      this.broadcastState();
     });
     await listen('stop_timeout_event', (event: any) => {
       this.stopTimeout();
+      this.broadcastState();
     });
     await listen('show_banner', (event: any) => {
       this.showBanner(event.payload.url);
@@ -270,20 +291,24 @@ export default {
     await listen('quarter_event', (event: any) => {
       this.quarter = event.payload.quarter;
       invoke('update_quarter', { quarter: this.quarter });
+      this.broadcastState();
     });
 
     await listen('quarter_step_event', (event: any) => {
       switch (event.payload.step) {
         case 'up':
           this.quarter += 1;
+          this.broadcastState();
           break;
 
         case 'down':
           this.quarter = this.quarter - 1 < 0 ? 0 : this.quarter - 1;
+          this.broadcastState();
           break;
 
         case 'reset':
           this.quarter = 1;
+          this.broadcastState();
           break;
 
         default:
@@ -293,16 +318,19 @@ export default {
 
     await listen('change_time_event', (event: any) => {
       this.time = this.time + event.payload.value * 1000;
+      this.broadcastState();
     });
 
     await listen('team_name_event', (event: any) => {
       switch (event.payload.team) {
         case 'teamA':
           this.teamA.name = event.payload.name;
+          this.broadcastState();
           break;
 
         case 'teamB':
           this.teamB.name = event.payload.name;
+          this.broadcastState();
           break;
 
         default:
@@ -342,10 +370,12 @@ export default {
           switch (event.payload.team) {
             case 'teamA':
               this.teamA.score += 1;
+              this.broadcastState();
               break;
 
             case 'teamB':
               this.teamB.score += 1;
+              this.broadcastState();
               break;
 
             default:
@@ -358,11 +388,15 @@ export default {
             case 'teamA':
               this.teamA.score =
                 this.teamA.score - 1 < 0 ? 0 : this.teamA.score - 1;
+
+                this.broadcastState();
               break;
 
             case 'teamB':
               this.teamB.score =
                 this.teamB.score - 1 < 0 ? 0 : this.teamB.score - 1;
+
+              this.broadcastState();
               break;
 
             default:
@@ -373,6 +407,7 @@ export default {
         case 'reset':
           this.teamA.score = 0;
           this.teamB.score = 0;
+          this.broadcastState();
           break;
 
         default:
@@ -385,10 +420,12 @@ export default {
           switch (event.payload.team) {
             case 'teamA':
               this.teamA.foul += 1;
+              this.broadcastState();
               break;
 
             case 'teamB':
               this.teamB.foul += 1;
+              this.broadcastState();
               break;
 
             default:
@@ -401,11 +438,15 @@ export default {
             case 'teamA':
               this.teamA.foul =
                 this.teamA.foul - 1 < 0 ? 0 : this.teamA.foul - 1;
+
+              this.broadcastState();
               break;
 
             case 'teamB':
               this.teamB.foul =
                 this.teamB.foul - 1 < 0 ? 0 : this.teamB.foul - 1;
+
+              this.broadcastState();
               break;
 
             default:
@@ -416,6 +457,7 @@ export default {
         case 'reset':
           this.teamA.foul = 0;
           this.teamB.foul = 0;
+          this.broadcastState();
           break;
 
         default:
@@ -429,11 +471,15 @@ export default {
             case 'teamA':
               this.teamA.timeout =
                 this.teamA.timeout + 1 > 3 ? 3 : this.teamA.timeout + 1;
+
+              this.broadcastState();
               break;
 
             case 'teamB':
               this.teamB.timeout =
                 this.teamB.timeout + 1 > 3 ? 3 : this.teamB.timeout + 1;
+
+              this.broadcastState();
               break;
 
             default:
@@ -446,11 +492,15 @@ export default {
             case 'teamA':
               this.teamA.timeout =
                 this.teamA.timeout - 1 < 0 ? 0 : this.teamA.timeout - 1;
+
+              this.broadcastState();
               break;
 
             case 'teamB':
               this.teamB.timeout =
                 this.teamB.timeout - 1 < 0 ? 0 : this.teamB.timeout - 1;
+
+              this.broadcastState();
               break;
 
             default:
@@ -461,6 +511,7 @@ export default {
         case 'reset':
           this.teamA.timeout = 0;
           this.teamB.timeout = 0;
+          this.broadcastState();
           break;
 
         default:
@@ -578,7 +629,7 @@ export default {
     },
   },
   methods: {
-    toggleFullscreen() {
+        toggleFullscreen() {
       invoke('toggle_fullscreen');
     },
     startTimer(initialTime: number = 600000) {
@@ -729,7 +780,19 @@ export default {
             this.stopVideo();
         }
     },
-    
+     broadcastState() {
+      sendWS({
+        teamAName: this.teamA.name,
+        teamAScore: this.teamA.score,
+        teamAFoul: this.teamA.foul,
+        teamATimeOut: this.teamA.timeout,
+
+        teamBName: this.teamB.name,
+        teamBScore: this.teamB.score,
+        teamBFoul: this.teamB.foul,
+        teamBTimeOut: this.teamB.timeout
+    });
+  },
     stopVideo() {
         this.isVideoPlaying = false;
         const videoElement = this.$refs.adVideoPlayer as HTMLVideoElement;
@@ -739,7 +802,7 @@ export default {
         }
     },
   },
-};
+}
 </script>
 
 <style scoped>
