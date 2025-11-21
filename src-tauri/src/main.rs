@@ -1,12 +1,17 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use serialport::SerialPort;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager, State};
+use tokio::net::TcpListener;
+use tokio::sync::mpsc::UnboundedSender;
 use tokio::time::{sleep, Duration};
+use tokio_tungstenite::accept_async;
+use tokio_tungstenite::tungstenite::Message;
 
 mod rabbitmq;
 mod serial;
@@ -28,6 +33,11 @@ struct AppState {
 #[derive(Serialize, Deserialize, Debug)]
 struct ConfigState {
     file_path: String,
+}
+
+#[derive(Clone)]
+struct WsState {
+    senders: Arc<Mutex<Vec<UnboundedSender<Message>>>>,
 }
 
 #[tauri::command]
@@ -74,19 +84,54 @@ fn toggle_fullscreen(window: tauri::Window) {
 }
 
 #[tauri::command]
-fn update_time(time: String, state: tauri::State<'_, Arc<Mutex<AppState>>>) -> Result<(), String> {
-    let state = state.lock().unwrap();
-    let host = state.rabbitmq_host.clone();
-    let username = state.rabbitmq_username.clone();
-    let password = state.rabbitmq_password.clone();
-    let routing_key = format!("sportkit.basket.{}.{}.time", state.event_id, state.field_id);
+fn update_time(
+    time: String,
+    // state: tauri::State<'_, Arc<Mutex<AppState>>>,
+    ws_state: tauri::State<'_, WsState>,
+) -> Result<(), String> {
+    // let state = state.lock().unwrap();
+    // let host = state.rabbitmq_host.clone();
+    // let username = state.rabbitmq_username.clone();
+    // let password = state.rabbitmq_password.clone();
+    // let routing_key = format!("sportkit.basket.{}.{}.time", state.event_id, state.field_id);
+
+    // let time_for_rabbit = time.clone();
+
+    // tokio::spawn(async move {
+    //     let _ =
+    //         rabbitmq::produce_to_rabbitmq(host, username, password, routing_key, time_for_rabbit)
+    //             .await;
+    // });
+    let senders_arc = ws_state.senders.clone();
+    let time_clone = time.clone();
 
     tokio::spawn(async move {
-        let _ = rabbitmq::produce_to_rabbitmq(host, username, password, routing_key, time).await;
+        let mut list = senders_arc.lock().unwrap();
+
+        println!("{}", time_clone);
+
+        list.retain(|sender| sender.send(Message::Text(time_clone.clone())).is_ok());
     });
 
     Ok(())
 }
+
+// #[tauri::command]
+// fn update_time(time: String, ws_state: tauri::State<'_, WsState>) -> Result<(), String> {
+//     // Ambil Arc<Mutex<Vec<Senders>>> dari state → ini boleh di-clone
+//     let senders_arc = ws_state.senders.clone();
+//     let time_clone = time.clone(); // klo mau print dll
+
+//     tokio::spawn(async move {
+//         let mut list = senders_arc.lock().unwrap();
+
+//         println!("{}", time_clone);
+
+//         list.retain(|sender| sender.send(Message::Text(time_clone.clone())).is_ok());
+//     });
+
+//     Ok(())
+// }
 
 #[tauri::command]
 fn update_quarter(
@@ -109,7 +154,6 @@ fn update_quarter(
     Ok(())
 }
 
-// Tauri command to update the state
 #[tauri::command]
 fn save_config(
     rabbitmq_host: String,
@@ -188,6 +232,55 @@ fn get_config(state: tauri::State<'_, Arc<Mutex<AppState>>>) -> Result<AppState,
 #[tauri::command]
 fn close_all_processes() {
     std::process::exit(0);
+}
+
+async fn start_ws_server(state: WsState) {
+    let listener = TcpListener::bind("127.0.0.1:9000")
+        .await
+        .expect("WebSocket server failed to start");
+
+    println!("WS Server listening on ws://127.0.0.1:9000");
+
+    loop {
+        let (stream, _) = listener.accept().await.unwrap();
+
+        let state_clone = state.clone();
+
+        tokio::spawn(async move {
+            if let Err(e) = handle_ws_connection(stream, state_clone).await {
+                println!("WS connection error: {}", e);
+            }
+        });
+    }
+}
+
+async fn handle_ws_connection(
+    stream: tokio::net::TcpStream,
+    state: WsState,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let ws_stream = accept_async(stream).await?;
+    let (mut write, mut read) = ws_stream.split();
+
+    // channel untuk kirim ke client
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Message>();
+
+    {
+        let mut list = state.senders.lock().unwrap();
+        list.push(tx);
+    }
+
+    // Task untuk menulis ke client
+    tokio::spawn(async move {
+        while let Some(msg) = rx.recv().await {
+            let _ = write.send(msg).await;
+        }
+    });
+
+    while let Some(Ok(msg)) = read.next().await {
+        println!("Client says: {:?}", msg);
+    }
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -277,6 +370,12 @@ async fn main() {
                 // main_windows.show().unwrap();
                 // controller_window.show().unwrap();
             });
+            let ws_state = WsState {
+                senders: Arc::new(Mutex::new(Vec::new())),
+            };
+
+            tauri::async_runtime::spawn(start_ws_server(ws_state.clone()));
+            app.manage(ws_state);
             Ok(())
         })
         .run(tauri::generate_context!())

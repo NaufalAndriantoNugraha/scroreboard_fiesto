@@ -644,6 +644,7 @@ export default {
           this.timerUpdateCounter += 1;
           if (this.timerUpdateCounter >= 10) {
             this.timerUpdateCounter = 0;
+            this.broadcastState();
             invoke('update_time', { time: this.formatedTime });
             emit('timer_event', { value: this.time });
           }
@@ -651,6 +652,7 @@ export default {
           if (this.time <= 0) {
             this.time = 0;
             this.stopTimer();
+            this.broadcastState();
             emit('timer_event', { value: this.time });
             emit('timer_stop_event');
           }
@@ -677,11 +679,13 @@ export default {
           if (this.timeoutUpdateCounter >= 10) {
             this.timeoutUpdateCounter = 0;
             emit('timeout_event', { value: this.timeout });
+            this.broadcastState();
           }
           this.timeout -= 10;
           if (this.timeout <= 0) {
             this.stopTimeout();
             emit('timeout_event', { value: this.timeout });
+            this.broadcastState();
           }
         }, 10);
       }
@@ -790,7 +794,11 @@ export default {
         teamBName: this.teamB.name,
         teamBScore: this.teamB.score,
         teamBFoul: this.teamB.foul,
-        teamBTimeOut: this.teamB.timeout
+        teamBTimeOut: this.teamB.timeout,
+
+        timer: this.formatedTime,
+        timeout: this.formatedTimeout,
+        quarter: this.quarter,
     });
   },
     stopVideo() {
