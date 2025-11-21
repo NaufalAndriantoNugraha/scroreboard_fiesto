@@ -24,6 +24,20 @@
         "removeFile": true,
         "renameFile": true
       },
+      "protocol": {
+        "asset": true,
+        "assetScope": [
+          "**",
+          "$APPDATA/**",
+          "$VIDEO/**",
+          "$DOWNLOAD/**",
+          "$DOCUMENT/**",
+          "$DESKTOP/**",
+          "C:\\Users\\**",
+          "D:\\**",
+          "E:\\**"
+        ]
+      },
       "dialog": {
         "all": true
       }

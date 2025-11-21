@@ -178,14 +178,35 @@
       </video>
     </div>
   </div>
+  <!-- Ad Video Player Overlay -->
+<div
+    v-show="isVideoPlaying"
+    class="fixed inset-0 flex justify-center items-center bg-black z-50"
+>
+    <video
+        ref="adVideoPlayer"
+        class="w-full h-full"
+        @ended="stopVideo"
+        @click="stopVideo"
+    >
+        Your browser does not support the video tag.
+    </video>
+    <button
+        @click="stopVideo"
+        class="absolute top-4 left-4 font-bold py-2 px-4 rounded text-transparent"
+    >
+        Close (X)
+    </button>
+</div>
 </template>
 
 <script lang="ts">
-import { invoke } from '@tauri-apps/api/tauri';
+import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
 import { emit, listen } from '@tauri-apps/api/event';
 import type { TeamInfo } from '~/types/TeamInfo';
 import { doc, updateDoc } from 'firebase/firestore';
 import { event } from '@tauri-apps/api';
+import { readDir } from '@tauri-apps/api/fs';
 
 export default {
   data() {
@@ -203,6 +224,10 @@ export default {
       is3Point: false as boolean,
       isAndOne: false as boolean,
       quarter: 0 as number,
+      isVideoPlaying: false as boolean,
+      currentVideoSrc: '' as string,
+      currentVideoIndex: 0 as number,
+      videoPlaylist: [] as string[],
       teamA: {
         name: '',
         picture: '',
@@ -220,6 +245,7 @@ export default {
     };
   },
   async mounted() {
+    
     await listen('start_timer_event', (event: any) => {
       this.startTimer(event.payload.initialTime);
     });
@@ -441,6 +467,14 @@ export default {
           break;
       }
     });
+    await listen('play_ad_directory', async (event: any) => {
+        const dirPath = event.payload.path;
+        const dirName = event.payload.name;
+        
+        console.log('Received play_ad_directory event:', dirPath);
+        
+        this.playVideosFromDirectory(dirPath);
+    });
   },
   watch: {
     teamA: {
@@ -630,6 +664,79 @@ export default {
       } catch (error) {
         console.error('Error updating document: ', error);
       }
+    },
+    async playVideosFromDirectory(dirPath: string) {
+        try {
+            // Baca semua file di directory
+            const files = await readDir(dirPath);
+            
+            // Filter hanya file .mp4
+            const videoFiles = files.filter(file => 
+                file.name?.toLowerCase().endsWith('.mp4')
+            );
+            
+            if (videoFiles.length === 0) {
+                console.error('No MP4 files found in directory');
+                return;
+            }
+            
+            console.log('Found videos:', videoFiles.map(f => f.name));
+            
+            // Simpan playlist
+            this.videoPlaylist = videoFiles.map(f => f.path);
+            this.currentVideoIndex = 0;
+            
+            // Play video pertama
+            this.playVideo(this.videoPlaylist[0]);
+            
+        } catch (error) {
+            console.error('Error reading directory:', error);
+        }
+    },
+    
+    async playVideo(videoPath: string) {
+        // Convert path ke format yang bisa diakses browser
+        const videoSrc = convertFileSrc(videoPath);
+        
+        console.log('Playing video:', videoSrc);
+        
+        // Show video overlay
+        this.isVideoPlaying = true;
+        this.currentVideoSrc = videoSrc;
+        
+        // Wait for DOM update
+        await this.$nextTick();
+        
+        const videoElement = this.$refs.adVideoPlayer as HTMLVideoElement;
+        if (videoElement) {
+            videoElement.src = videoSrc;
+            videoElement.play().catch(error => {
+                console.error('Error playing video:', error);
+            });
+            videoElement.onended = () => {
+                this.playNextVideo();
+            };
+        }
+    },
+    playNextVideo() {
+        this.currentVideoIndex++;
+        
+        if (this.currentVideoIndex < this.videoPlaylist.length) {
+            // Play next video
+            this.playVideo(this.videoPlaylist[this.currentVideoIndex]);
+        } else {
+            // Semua video sudah selesai, tutup player
+            this.stopVideo();
+        }
+    },
+    
+    stopVideo() {
+        this.isVideoPlaying = false;
+        const videoElement = this.$refs.adVideoPlayer as HTMLVideoElement;
+        if (videoElement) {
+            videoElement.pause();
+            videoElement.src = '';
+        }
     },
   },
 };

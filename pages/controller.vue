@@ -132,6 +132,11 @@
                 @click="playAdDirectory(dir)"
                 class="bg-amber-500 hover:bg-amber-600 active:bg-amber-900 text-white font-bold py-2 px-4 m-2 rounded"
                 >{{ dir.name }}</button>
+            <!-- <button 
+                @click=""
+                class="bg-amber-500 hover:bg-amber-600 active:bg-amber-900 text-white font-bold py-2 px-4 m-2 rounded"
+                >Stop Ads
+            </button> -->
             </div>
             <div class="flex justify-between items-center mx-10 w-full px-8">
                 <Icon @click="openConfig" name="mynaui:config"
@@ -233,12 +238,18 @@ export default {
       }
 
       async function playAdDirectory(dir: FileEntry) {
-        // invoke event to rust backend 
+        console.log('Playing directory:', dir.name);
+        
+        emit('play_ad_directory', { 
+            path: dir.path,
+            name: dir.name 
+        });
       }
 
       return {
         adDirectories,
-        openAdDirectory
+        openAdDirectory,
+        playAdDirectory,
       }
     },
     data() {
@@ -280,6 +291,9 @@ export default {
             notificationMessage: '' as string,
             showResetConfirm: false as boolean,
             resetType: '' as 'timer' | 'game' | '',
+            isVideoPlaying: false as boolean,
+            currentVideoPath: '' as string,
+            currentVideoSrc: '' as string,
         }
     },
     mounted() {
@@ -524,6 +538,14 @@ export default {
             this.showResetConfirm = false;
             this.resetType = '';
         },
+        // stopVideo() {
+        //     this.isVideoPlaying = false;
+        //     const videoElement = this.$refs.adVideoPlayer as HTMLVideoElement;
+        //     if (videoElement) {
+        //         videoElement.pause();
+        //         videoElement.src = '';
+        //     }
+        // },
     }
 }
 </script>
