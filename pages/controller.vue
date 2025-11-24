@@ -50,6 +50,7 @@
                         </span>
                         <div class="flex items-center justify-around w-full mb-2">
                             <button @click="() => { emitSumEvent('change_time_event', { value: 60 }); }"
+                                :disabled="isRunning"
                                 class="bg-blue-500 hover:bg-blue-600 active:bg-blue-900 text-white font-bold p-2 rounded w-12 h-12">
                                 +
                             </button>
@@ -58,6 +59,7 @@
                                 +10
                             </button> -->
                             <button @click="() => { emitSumEvent('change_time_event', { value: 1 }); }"
+                                :disabled="isRunning"
                                 class="bg-blue-500 hover:bg-blue-600 active:bg-blue-900 text-white font-bold p-2 rounded w-12 h-12">
                                 +
                             </button>
@@ -67,6 +69,7 @@
                         </span>
                         <div class="flex items-center justify-around w-full mt-2">
                             <button @click="() => { emitSumEvent('change_time_event', { value: -60 }); }"
+                                :disabled="isRunning"
                                 class="bg-red-500 hover:bg-red-600 active:bg-red-900 text-white font-bold p-2 rounded w-12 h-12">
                                 -
                             </button>
@@ -75,6 +78,7 @@
                                 -10
                             </button> -->
                             <button @click="() => { emitSumEvent('change_time_event', { value: -1 }); }"
+                                :disabled="isRunning"
                                 class="bg-red-500 hover:bg-red-600 active:bg-red-900 text-white font-bold p-2 rounded w-12 h-12">
                                 -
                             </button>
