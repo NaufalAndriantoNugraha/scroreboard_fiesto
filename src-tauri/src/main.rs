@@ -83,27 +83,46 @@ fn toggle_fullscreen(window: tauri::Window) {
     }
 }
 
+// #[tauri::command]
+// fn update_time(
+//     time: String,
+//     // state: tauri::State<'_, Arc<Mutex<AppState>>>,
+//     ws_state: tauri::State<'_, WsState>,
+// ) -> Result<(), String> {
+//     let state = state.lock().unwrap();
+//     let host = state.rabbitmq_host.clone();
+//     let username = state.rabbitmq_username.clone();
+//     let password = state.rabbitmq_password.clone();
+//     let routing_key = format!("sportkit.basket.{}.{}.time", state.event_id, state.field_id);
+
+//     let time_for_rabbit = time.clone();
+
+//     tokio::spawn(async move {
+//         let _ =
+//             rabbitmq::produce_to_rabbitmq(host, username, password, routing_key, time_for_rabbit)
+//                 .await;
+//     });
+//     list.retain(|sender| sender.send(Message::Text(time.clone())).is_ok());
+
+//     // let senders_arc = ws_state.senders.clone();
+//     // let time_clone = time.clone();
+
+//     // tokio::spawn(async move {
+//     //     let mut list = senders_arc.lock().unwrap();
+
+//     //     println!("{}", time_clone);
+
+//     //     list.retain(|sender| sender.send(Message::Text(time_clone.clone())).is_ok());
+//     // });
+
+//     Ok(())
+// }
+
 #[tauri::command]
-fn update_time(
-    time: String,
-    // state: tauri::State<'_, Arc<Mutex<AppState>>>,
-    ws_state: tauri::State<'_, WsState>,
-) -> Result<(), String> {
-    // let state = state.lock().unwrap();
-    // let host = state.rabbitmq_host.clone();
-    // let username = state.rabbitmq_username.clone();
-    // let password = state.rabbitmq_password.clone();
-    // let routing_key = format!("sportkit.basket.{}.{}.time", state.event_id, state.field_id);
-
-    // let time_for_rabbit = time.clone();
-
-    // tokio::spawn(async move {
-    //     let _ =
-    //         rabbitmq::produce_to_rabbitmq(host, username, password, routing_key, time_for_rabbit)
-    //             .await;
-    // });
+fn update_time(time: String, ws_state: tauri::State<'_, WsState>) -> Result<(), String> {
+    // Ambil Arc<Mutex<Vec<Senders>>> dari state → ini boleh di-clone
     let senders_arc = ws_state.senders.clone();
-    let time_clone = time.clone();
+    let time_clone = time.clone(); // klo mau print dll
 
     tokio::spawn(async move {
         let mut list = senders_arc.lock().unwrap();
@@ -115,23 +134,6 @@ fn update_time(
 
     Ok(())
 }
-
-// #[tauri::command]
-// fn update_time(time: String, ws_state: tauri::State<'_, WsState>) -> Result<(), String> {
-//     // Ambil Arc<Mutex<Vec<Senders>>> dari state → ini boleh di-clone
-//     let senders_arc = ws_state.senders.clone();
-//     let time_clone = time.clone(); // klo mau print dll
-
-//     tokio::spawn(async move {
-//         let mut list = senders_arc.lock().unwrap();
-
-//         println!("{}", time_clone);
-
-//         list.retain(|sender| sender.send(Message::Text(time_clone.clone())).is_ok());
-//     });
-
-//     Ok(())
-// }
 
 #[tauri::command]
 fn update_quarter(

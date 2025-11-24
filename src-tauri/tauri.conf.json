@@ -11,6 +11,10 @@
     "version": "0.1.0"
   },
   "tauri": {
+    "security": {
+      "dangerousUseHttpScheme": true,
+      "csp": null
+    },
     "allowlist": {
       "all": true,
       "window": {
@@ -40,6 +44,9 @@
       },
       "dialog": {
         "all": true
+      },
+      "http": {
+        "request": true
       }
     },
     "bundle": {
@@ -74,9 +81,6 @@
         "digestAlgorithm": "sha256",
         "timestampUrl": ""
       }
-    },
-    "security": {
-      "csp": null
     },
     "updater": {
       "active": false

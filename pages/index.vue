@@ -212,7 +212,9 @@ let ws: WebSocket | null = null;
 
 function initWS() {
   // ws = new WebSocket("ws://192.168.18.251:8070");
-  ws = new WebSocket("ws://72.61.140.101:8070");
+  // ws = new WebSocket("ws://72.61.140.101:8070");
+  // ws = new WebSocket('wss://sportkit.club');
+  ws = new WebSocket('ws://ws.sportkit.club:8070');
 
   ws.onopen = () => console.log("WS Connected");
   ws.onclose = () => console.log("WS Disconnected");
