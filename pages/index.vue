@@ -570,31 +570,48 @@ export default {
   },
   computed: {
     formatedTime() {
-      if (this.time > 60000) {
+      if (this.time >= 60000) {        // <= ini diperbaiki
         const milliseconds = (this.time % 1000) / 10;
         const seconds = Math.floor(this.time / 1000) % 60;
         const minutes = Math.floor(this.time / (1000 * 60)) % 60;
-
-        const strMinutes = String(
-          minutes < 10 ? '0' + minutes.toFixed(0) : minutes.toFixed(0),
-        );
-        const strSeconds = String(
-          seconds < 10 ? '0' + seconds.toFixed(0) : seconds.toFixed(0),
-        );
-        const strMilliseconds = String(
-          milliseconds < 10
-            ? '0' + milliseconds.toFixed(0)
-            : milliseconds.toFixed(0),
-        );
-
-        return strMinutes + ':' + strSeconds; // + "." + strMilliseconds;
+        const strMinutes = String(minutes).padStart(2, '0');
+        const strSeconds = String(seconds).padStart(2, '0');
+        return strMinutes + ":" + strSeconds;
       } else {
         const milliseconds = (this.time % 1000) / 10;
         const seconds = Math.floor(this.time / 1000) % 60;
-        const minutes = Math.floor(this.time / (1000 * 60)) % 60;
-        return `${seconds}.${milliseconds.toFixed(0)}`; //minutes + ":" + seconds;
+        const strMs = milliseconds.toFixed(0).padStart(2, '0');
+        return `${seconds}.${strMs}`;
       }
     },
+
+
+    // formatedTime() {
+    //   if (this.time > 60000) {
+    //     const milliseconds = (this.time % 1000) / 10;
+    //     const seconds = Math.floor(this.time / 1000) % 60;
+    //     const minutes = Math.floor(this.time / (1000 * 60)) % 60;
+
+    //     const strMinutes = String(
+    //       minutes < 10 ? '0' + minutes.toFixed(0) : minutes.toFixed(0),
+    //     );
+    //     const strSeconds = String(
+    //       seconds < 10 ? '0' + seconds.toFixed(0) : seconds.toFixed(0),
+    //     );
+    //     const strMilliseconds = String(
+    //       milliseconds < 10
+    //         ? '0' + milliseconds.toFixed(0)
+    //         : milliseconds.toFixed(0),
+    //     );
+
+    //     return strMinutes + ':' + strSeconds; // + "." + strMilliseconds;
+    //   } else {
+    //     const milliseconds = (this.time % 1000) / 10;
+    //     const seconds = Math.floor(this.time / 1000) % 60;
+    //     const minutes = Math.floor(this.time / (1000 * 60)) % 60;
+    //     return `${seconds}.${milliseconds.toFixed(0)}`; //minutes + ":" + seconds;
+    //   }
+    // },
     formatedTimeout() {
       const milliseconds = (this.timeout % 1000) / 10;
       const seconds = Math.floor(this.timeout / 1000) % 60;
