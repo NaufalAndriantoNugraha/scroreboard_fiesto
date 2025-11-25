@@ -378,6 +378,14 @@ async fn main() {
 
             tauri::async_runtime::spawn(start_ws_server(ws_state.clone()));
             app.manage(ws_state);
+
+            let app_handle = app.handle();
+
+            app.listen_global("stop-ad", move |_| {
+                let window = app_handle.get_window("indexpage").unwrap();
+                window.emit("stop-ad", {}).unwrap();
+            });
+
             Ok(())
         })
         .run(tauri::generate_context!())
