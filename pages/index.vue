@@ -210,11 +210,17 @@ import { readDir } from "@tauri-apps/api/fs";
 
 let ws: WebSocket | null = null;
 
-function initWS() {
+async function initWS() {
+  await invoke("start_integrated_web_socket");
+  await invoke("start_integrated_web_server");
+
+  const localIpAddress = await invoke("get_local_ip");
+
   // ws = new WebSocket("ws://192.168.18.251:8070");
   // ws = new WebSocket("ws://72.61.140.101:8070");
   // ws = new WebSocket('wss://sportkit.club');
-  ws = new WebSocket("ws://ws.sportkit.club:8070");
+  // ws = new WebSocket('ws://ws.sportkit.club:8070');
+  ws = new WebSocket(`ws://${localIpAddress}:8071`);
 
   ws.onopen = () => console.log("WS Connected");
   ws.onclose = () => console.log("WS Disconnected");
