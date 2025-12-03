@@ -134,8 +134,8 @@
         "title": "Scoreboard Splashscreen"
       },
       {
-        "width": 500,
-        "height": 500,
+        "width": 800,
+        "height": 650,
         "url": "/scoreboard_alternative",
         "label": "scoreboard_alternative",
         "title": "Alternative Scoreboard Window"
