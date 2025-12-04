@@ -16,6 +16,8 @@ use tokio_tungstenite::tungstenite::Message;
 mod rabbitmq;
 mod serial;
 mod utils;
+mod web_server;
+mod ws_server;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct AppState {
@@ -241,43 +243,43 @@ fn get_local_ip() -> String {
     local_ip_address::local_ip().unwrap().to_string()
 }
 
-#[tauri::command]
-fn start_integrated_web_server() {
-    tauri::async_runtime::spawn(async move {
-        let exe = std::env::current_exe().unwrap();
-        let root = exe.parent().unwrap().parent().unwrap();
+// #[tauri::command]
+// fn start_integrated_web_server() {
+//     tauri::async_runtime::spawn(async move {
+//         let exe = std::env::current_exe().unwrap();
+//         let root = exe.parent().unwrap().parent().unwrap();
 
-        // path ke script WebSocket
-        let script_path = root.join("script/integratedWebSocket.cjs");
+//         // path ke script WebSocket
+//         let script_path = root.join("script/integratedWebSocket.cjs");
 
-        println!("Running WS server: {:?}", script_path);
+//         println!("Running WS server: {:?}", script_path);
 
-        let _ = std::process::Command::new("node").arg(script_path).spawn();
-    });
-    // std::process::Command::new("node")
-    //     .arg("../../scripts/integratedWebServer.js")
-    //     .spawn()
-    //     .is_ok()
-}
+//         let _ = std::process::Command::new("node").arg(script_path).spawn();
+//     });
+//     // std::process::Command::new("node")
+//     //     .arg("../../scripts/integratedWebServer.js")
+//     //     .spawn()
+//     //     .is_ok()
+// }
 
-#[tauri::command]
-fn start_integrated_web_socket() {
-    tauri::async_runtime::spawn(async move {
-        let exe = std::env::current_exe().unwrap();
-        let root = exe.parent().unwrap().parent().unwrap();
+// #[tauri::command]
+// fn start_integrated_web_socket() {
+//     tauri::async_runtime::spawn(async move {
+//         let exe = std::env::current_exe().unwrap();
+//         let root = exe.parent().unwrap().parent().unwrap();
 
-        // path ke script WebServer
-        let script_path = root.join("script/integratedWebServer.cjs");
+//         // path ke script WebServer
+//         let script_path = root.join("script/integratedWebServer.cjs");
 
-        println!("Running Web Server: {:?}", script_path);
+//         println!("Running Web Server: {:?}", script_path);
 
-        let _ = std::process::Command::new("node").arg(script_path).spawn();
-    });
-    // std::process::Command::new("node")
-    //     .arg("../../scripts/integratedWebSocket.js")
-    //     .spawn()
-    //     .is_ok()
-}
+//         let _ = std::process::Command::new("node").arg(script_path).spawn();
+//     });
+//     // std::process::Command::new("node")
+//     //     .arg("../../scripts/integratedWebSocket.js")
+//     //     .spawn()
+//     //     .is_ok()
+// }
 
 async fn start_ws_server(state: WsState) {
     let listener = TcpListener::bind("127.0.0.1:9000")
@@ -401,8 +403,6 @@ async fn main() {
             close_all_processes,
             toggle_fullscreen,
             get_local_ip,
-            start_integrated_web_server,
-            start_integrated_web_socket,
         ])
         .setup(|app| {
             let splashscreen_window = app.get_window("splashscreen").unwrap();
@@ -431,6 +431,9 @@ async fn main() {
                 let window = app_handle.get_window("indexpage").unwrap();
                 window.emit("stop-ad", {}).unwrap();
             });
+
+            tauri::async_runtime::spawn(async move { ws_server::run_ws_server().await });
+            tauri::async_runtime::spawn(async move { web_server::run_http_server().await });
 
             Ok(())
         })

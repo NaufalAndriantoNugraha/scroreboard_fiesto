@@ -211,17 +211,11 @@ import { readDir } from "@tauri-apps/api/fs";
 let ws: WebSocket | null = null;
 
 async function initWS() {
-  await invoke("start_integrated_web_socket");
-  await invoke("start_integrated_web_server");
-
   const localIpAddress = await invoke("get_local_ip");
 
-  // ws = new WebSocket("ws://192.168.18.251:8070");
-  // ws = new WebSocket("ws://72.61.140.101:8070");
-  // ws = new WebSocket('wss://sportkit.club');
-  // ws = new WebSocket('ws://ws.sportkit.club:8070');
-  ws = new WebSocket(`ws://${localIpAddress}:8071`);
+  ws = new WebSocket(`ws://${localIpAddress}:8071/ws`);
 
+  console.log(`IP ADRESS: ${localIpAddress}`);
   ws.onopen = () => console.log("WS Connected");
   ws.onclose = () => console.log("WS Disconnected");
 }
@@ -229,6 +223,7 @@ async function initWS() {
 function sendWS(data: any) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(data));
+    console.log(`========= ${JSON.stringify(data)}`);
   }
 }
 
@@ -269,7 +264,7 @@ export default {
     };
   },
   async mounted() {
-    initWS();
+    await initWS();
 
     await listen("start_timer_event", (event: any) => {
       this.startTimer(event.payload.initialTime);
@@ -316,7 +311,7 @@ export default {
           break;
 
         case "reset":
-          this.quarter = 1;
+          this.quarter = 0;
           this.broadcastState();
           break;
 
@@ -817,19 +812,19 @@ export default {
     },
     broadcastState() {
       sendWS({
-        teamAName: this.teamA.name,
-        teamAScore: this.teamA.score,
-        teamAFoul: this.teamA.foul,
-        teamATimeOut: this.teamA.timeout,
+        team_a_name: this.teamA.name,
+        team_a_score: this.teamA.score,
+        team_a_foul: this.teamA.foul,
+        team_a_timeout: this.teamA.timeout,
 
-        teamBName: this.teamB.name,
-        teamBScore: this.teamB.score,
-        teamBFoul: this.teamB.foul,
-        teamBTimeOut: this.teamB.timeout,
+        team_b_name: this.teamB.name,
+        team_b_score: this.teamB.score,
+        team_b_foul: this.teamB.foul,
+        team_b_timeout: this.teamB.timeout,
 
         timer: this.formatedTime,
         timeout: this.formatedTimeout,
-        quarter: this.quarter,
+        quarter: this.quarter.toString(),
       });
     },
     stopVideo() {
