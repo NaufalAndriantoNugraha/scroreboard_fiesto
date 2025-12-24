@@ -35,11 +35,11 @@
         <div class="label-header font-roboto-condensed">
           <div class="left-label label-score">
             <div>
-              {{ teamA.name != "" ? teamA.name : "Terang" }}
+              {{ teamA.name != '' ? teamA.name : 'Terang' }}
             </div>
           </div>
           <div class="right-label label-score">
-            <div>{{ teamB.name != "" ? teamB.name : "Gelap" }}</div>
+            <div>{{ teamB.name != '' ? teamB.name : 'Gelap' }}</div>
           </div>
         </div>
       </div>
@@ -201,28 +201,45 @@
 </template>
 
 <script lang="ts">
-import { convertFileSrc, invoke } from "@tauri-apps/api/tauri";
-import { emit, listen } from "@tauri-apps/api/event";
-import type { TeamInfo } from "~/types/TeamInfo";
-import { doc, updateDoc } from "firebase/firestore";
-import { event } from "@tauri-apps/api";
-import { readDir } from "@tauri-apps/api/fs";
+import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+import { emit, listen } from '@tauri-apps/api/event';
+import type { TeamInfo } from '~/types/TeamInfo';
+import { doc, updateDoc } from 'firebase/firestore';
+import { event } from '@tauri-apps/api';
+import { readDir } from '@tauri-apps/api/fs';
 
 let ws: WebSocket | null = null;
+let wsOnline: WebSocket | null = null;
 
 async function initWS() {
-  const localIpAddress = await invoke("get_local_ip");
+  const localIpAddress = await invoke('get_local_ip');
 
   ws = new WebSocket(`ws://${localIpAddress}:8071/ws`);
 
   console.log(`IP ADRESS: ${localIpAddress}`);
-  ws.onopen = () => console.log("WS Connected");
-  ws.onclose = () => console.log("WS Disconnected");
+
+  ws.onopen = () => console.log('WS Connected');
+  ws.onclose = () => console.log('WS Disconnected');
+}
+
+async function initWSOnline(onlineIp: string) {
+  // wsOnline = new WebSocket('ws://ws.sportkit.club:8070');
+  wsOnline = new WebSocket(`ws://${onlineIp}:8070`);
+
+  wsOnline.onopen = () => console.log('WS Connected');
+  wsOnline.onclose = () => console.log('WS Disconnected');
 }
 
 function sendWS(data: any) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(data));
+    console.log(`========= ${JSON.stringify(data)}`);
+  }
+}
+
+function sendWSOnline(data: any) {
+  if (wsOnline && wsOnline.readyState === WebSocket.OPEN) {
+    wsOnline.send(JSON.stringify(data));
     console.log(`========= ${JSON.stringify(data)}`);
   }
 }
@@ -239,24 +256,24 @@ export default {
       isRunning: false as boolean,
       isTimeout: false as boolean,
       isBannerShown: false as boolean,
-      previewUrl: "" as string,
+      previewUrl: '' as string,
       is3Point: false as boolean,
       isAndOne: false as boolean,
       quarter: 0 as number,
       isVideoPlaying: false as boolean,
-      currentVideoSrc: "" as string,
+      currentVideoSrc: '' as string,
       currentVideoIndex: 0 as number,
       videoPlaylist: [] as string[],
       teamA: {
-        name: "",
-        picture: "",
+        name: '',
+        picture: '',
         score: 0,
         foul: 0,
         timeout: 0,
       } as TeamInfo,
       teamB: {
-        name: "",
-        picture: "",
+        name: '',
+        picture: '',
         score: 0,
         foul: 0,
         timeout: 0,
@@ -266,51 +283,51 @@ export default {
   async mounted() {
     await initWS();
 
-    await listen("start_timer_event", (event: any) => {
+    await listen('start_timer_event', (event: any) => {
       this.startTimer(event.payload.initialTime);
       this.broadcastState();
     });
-    await listen("reset_timer_event", (event: any) => {
+    await listen('reset_timer_event', (event: any) => {
       this.resetTimer();
       this.broadcastState();
     });
-    await listen("stop_timer_event", (event: any) => {
+    await listen('stop_timer_event', (event: any) => {
       this.stopTimer();
       this.broadcastState();
     });
-    await listen("start_timeout_event", (event: any) => {
+    await listen('start_timeout_event', (event: any) => {
       this.startTimeout(event.payload.team, event.payload.initialTime);
       this.broadcastState();
     });
-    await listen("stop_timeout_event", (event: any) => {
+    await listen('stop_timeout_event', (event: any) => {
       this.stopTimeout();
       this.broadcastState();
     });
-    await listen("show_banner", (event: any) => {
+    await listen('show_banner', (event: any) => {
       this.showBanner(event.payload.url);
     });
-    await listen("hide_banner", (event: any) => {
+    await listen('hide_banner', (event: any) => {
       this.hideBanner();
     });
-    await listen("quarter_event", (event: any) => {
+    await listen('quarter_event', (event: any) => {
       this.quarter = event.payload.quarter;
-      invoke("update_quarter", { quarter: this.quarter });
+      invoke('update_quarter', { quarter: this.quarter });
       this.broadcastState();
     });
 
-    await listen("quarter_step_event", (event: any) => {
+    await listen('quarter_step_event', (event: any) => {
       switch (event.payload.step) {
-        case "up":
+        case 'up':
           this.quarter += 1;
           this.broadcastState();
           break;
 
-        case "down":
+        case 'down':
           this.quarter = this.quarter - 1 < 0 ? 0 : this.quarter - 1;
           this.broadcastState();
           break;
 
-        case "reset":
+        case 'reset':
           this.quarter = 0;
           this.broadcastState();
           break;
@@ -320,19 +337,19 @@ export default {
       }
     });
 
-    await listen("change_time_event", (event: any) => {
+    await listen('change_time_event', (event: any) => {
       this.time = this.time + event.payload.value * 1000;
       this.broadcastState();
     });
 
-    await listen("team_name_event", (event: any) => {
+    await listen('team_name_event', (event: any) => {
       switch (event.payload.team) {
-        case "teamA":
+        case 'teamA':
           this.teamA.name = event.payload.name;
           this.broadcastState();
           break;
 
-        case "teamB":
+        case 'teamB':
           this.teamB.name = event.payload.name;
           this.broadcastState();
           break;
@@ -342,12 +359,12 @@ export default {
       }
     });
 
-    await listen("3point_event", (event: any) => {
+    await listen('3point_event', (event: any) => {
       this.is3Point = true;
       const videoElement = this.$refs.threePointPlayer as HTMLVideoElement;
       if (videoElement) {
         videoElement.play().catch((error) => {
-          console.error("Error attempting to play video:", error);
+          console.error('Error attempting to play video:', error);
         });
         setTimeout(() => {
           this.is3Point = false;
@@ -355,12 +372,12 @@ export default {
       }
     });
 
-    await listen("and_one_event", (event: any) => {
+    await listen('and_one_event', (event: any) => {
       this.isAndOne = true;
       const videoElement = this.$refs.andOnePlayer as HTMLVideoElement;
       if (videoElement) {
         videoElement.play().catch((error) => {
-          console.error("Error attempting to play video:", error);
+          console.error('Error attempting to play video:', error);
         });
         setTimeout(() => {
           this.isAndOne = false;
@@ -368,16 +385,16 @@ export default {
       }
     });
 
-    await listen("score_step_event", (event: any) => {
+    await listen('score_step_event', (event: any) => {
       switch (event.payload.step) {
-        case "up":
+        case 'up':
           switch (event.payload.team) {
-            case "teamA":
+            case 'teamA':
               this.teamA.score += 1;
               this.broadcastState();
               break;
 
-            case "teamB":
+            case 'teamB':
               this.teamB.score += 1;
               this.broadcastState();
               break;
@@ -387,16 +404,16 @@ export default {
           }
           break;
 
-        case "down":
+        case 'down':
           switch (event.payload.team) {
-            case "teamA":
+            case 'teamA':
               this.teamA.score =
                 this.teamA.score - 1 < 0 ? 0 : this.teamA.score - 1;
 
               this.broadcastState();
               break;
 
-            case "teamB":
+            case 'teamB':
               this.teamB.score =
                 this.teamB.score - 1 < 0 ? 0 : this.teamB.score - 1;
 
@@ -408,7 +425,7 @@ export default {
           }
           break;
 
-        case "reset":
+        case 'reset':
           this.teamA.score = 0;
           this.teamB.score = 0;
           this.broadcastState();
@@ -418,16 +435,16 @@ export default {
           break;
       }
     });
-    await listen("foul_step_event", (event: any) => {
+    await listen('foul_step_event', (event: any) => {
       switch (event.payload.step) {
-        case "up":
+        case 'up':
           switch (event.payload.team) {
-            case "teamA":
+            case 'teamA':
               this.teamA.foul += 1;
               this.broadcastState();
               break;
 
-            case "teamB":
+            case 'teamB':
               this.teamB.foul += 1;
               this.broadcastState();
               break;
@@ -437,16 +454,16 @@ export default {
           }
           break;
 
-        case "down":
+        case 'down':
           switch (event.payload.team) {
-            case "teamA":
+            case 'teamA':
               this.teamA.foul =
                 this.teamA.foul - 1 < 0 ? 0 : this.teamA.foul - 1;
 
               this.broadcastState();
               break;
 
-            case "teamB":
+            case 'teamB':
               this.teamB.foul =
                 this.teamB.foul - 1 < 0 ? 0 : this.teamB.foul - 1;
 
@@ -458,7 +475,7 @@ export default {
           }
           break;
 
-        case "reset":
+        case 'reset':
           this.teamA.foul = 0;
           this.teamB.foul = 0;
           this.broadcastState();
@@ -468,18 +485,18 @@ export default {
           break;
       }
     });
-    await listen("timeout_step_event", (event: any) => {
+    await listen('timeout_step_event', (event: any) => {
       switch (event.payload.step) {
-        case "up":
+        case 'up':
           switch (event.payload.team) {
-            case "teamA":
+            case 'teamA':
               this.teamA.timeout =
                 this.teamA.timeout + 1 > 3 ? 3 : this.teamA.timeout + 1;
 
               this.broadcastState();
               break;
 
-            case "teamB":
+            case 'teamB':
               this.teamB.timeout =
                 this.teamB.timeout + 1 > 3 ? 3 : this.teamB.timeout + 1;
 
@@ -491,16 +508,16 @@ export default {
           }
           break;
 
-        case "down":
+        case 'down':
           switch (event.payload.team) {
-            case "teamA":
+            case 'teamA':
               this.teamA.timeout =
                 this.teamA.timeout - 1 < 0 ? 0 : this.teamA.timeout - 1;
 
               this.broadcastState();
               break;
 
-            case "teamB":
+            case 'teamB':
               this.teamB.timeout =
                 this.teamB.timeout - 1 < 0 ? 0 : this.teamB.timeout - 1;
 
@@ -512,7 +529,7 @@ export default {
           }
           break;
 
-        case "reset":
+        case 'reset':
           this.teamA.timeout = 0;
           this.teamB.timeout = 0;
           this.broadcastState();
@@ -522,23 +539,27 @@ export default {
           break;
       }
     });
-    await listen("play_ad_directory", async (event: any) => {
+    await listen('play_ad_directory', async (event: any) => {
       const dirPath = event.payload.path;
       const dirName = event.payload.name;
 
-      console.log("Received play_ad_directory event:", dirPath);
+      console.log('Received play_ad_directory event:', dirPath);
 
       this.playVideosFromDirectory(dirPath);
     });
-    await listen("stop-ad", async (event: any) => {
+    await listen('stop-ad', async (event: any) => {
       this.stopVideo();
+    });
+    await listen('ws:online-ip', async (event: any) => {
+      const url = event.payload;
+      await initWSOnline(url);
     });
   },
   watch: {
     teamA: {
       handler(newVal, oldVal) {
         console.log(newVal, oldVal);
-        emit("team_a_event", {
+        emit('team_a_event', {
           teamA: {
             name: this.teamA.name,
             score: this.teamA.score,
@@ -552,7 +573,7 @@ export default {
     teamB: {
       handler(newVal, oldVal) {
         console.log(newVal, oldVal);
-        emit("team_b_event", {
+        emit('team_b_event', {
           teamB: {
             name: this.teamB.name,
             score: this.teamB.score,
@@ -566,7 +587,7 @@ export default {
     quarter: {
       handler(newVal, oldVal) {
         console.log(newVal, oldVal);
-        emit("quarter_event", {
+        emit('quarter_event', {
           quarter: this.quarter,
         });
       },
@@ -579,13 +600,13 @@ export default {
         const milliseconds = (this.time % 1000) / 10;
         const seconds = Math.floor(this.time / 1000) % 60;
         const minutes = Math.floor(this.time / (1000 * 60)) % 60;
-        const strMinutes = String(minutes).padStart(2, "0");
-        const strSeconds = String(seconds).padStart(2, "0");
-        return strMinutes + ":" + strSeconds;
+        const strMinutes = String(minutes).padStart(2, '0');
+        const strSeconds = String(seconds).padStart(2, '0');
+        return strMinutes + ':' + strSeconds;
       } else {
         const milliseconds = (this.time % 1000) / 10;
         const seconds = Math.floor(this.time / 1000) % 60;
-        const strMs = milliseconds.toFixed(0).padStart(2, "0");
+        const strMs = milliseconds.toFixed(0).padStart(2, '0');
         return `${seconds}.${strMs}`;
       }
     },
@@ -622,39 +643,39 @@ export default {
       const minutes = Math.floor(this.timeout / (1000 * 60)) % 60;
 
       const strMinutes = String(
-        minutes < 10 ? "0" + minutes.toFixed(0) : minutes.toFixed(0)
+        minutes < 10 ? '0' + minutes.toFixed(0) : minutes.toFixed(0),
       );
       const strSeconds = String(
-        seconds < 10 ? "0" + seconds.toFixed(0) : seconds.toFixed(0)
+        seconds < 10 ? '0' + seconds.toFixed(0) : seconds.toFixed(0),
       );
       const strMilliseconds = String(
         milliseconds < 10
-          ? "0" + milliseconds.toFixed(0)
-          : milliseconds.toFixed(0)
+          ? '0' + milliseconds.toFixed(0)
+          : milliseconds.toFixed(0),
       );
 
       return strSeconds;
     },
     quarterName() {
       switch (String(this.quarter)) {
-        case "1":
-          return "Q1";
-        case "2":
-          return "Q2";
-        case "3":
-          return "Q3";
-        case "4":
-          return "Q4";
-        case "5":
-          return "OT";
+        case '1':
+          return 'Q1';
+        case '2':
+          return 'Q2';
+        case '3':
+          return 'Q3';
+        case '4':
+          return 'Q4';
+        case '5':
+          return 'OT';
         default:
-          return "";
+          return '';
       }
     },
   },
   methods: {
     toggleFullscreen() {
-      invoke("toggle_fullscreen");
+      invoke('toggle_fullscreen');
     },
     startTimer(initialTime: number = 600000) {
       // const adsWindow = new WebviewWindow('ads');
@@ -669,16 +690,16 @@ export default {
           if (this.timerUpdateCounter >= 10) {
             this.timerUpdateCounter = 0;
             this.broadcastState();
-            invoke("update_time", { time: this.formatedTime });
-            emit("timer_event", { value: this.time });
+            invoke('update_time', { time: this.formatedTime });
+            emit('timer_event', { value: this.time });
           }
           this.time -= 10; // Increment every 10 milliseconds
           if (this.time <= 0) {
             this.time = 0;
             this.stopTimer();
             this.broadcastState();
-            emit("timer_event", { value: this.time });
-            emit("timer_stop_event");
+            emit('timer_event', { value: this.time });
+            emit('timer_stop_event');
           }
         }, 10);
       }
@@ -687,7 +708,7 @@ export default {
     resetTimer() {
       this.time = 0;
       this.stopTimer();
-      invoke("update_time", { time: this.formatedTime });
+      invoke('update_time', { time: this.formatedTime });
     },
     stopTimer() {
       this.isRunning = false;
@@ -702,13 +723,13 @@ export default {
           this.timeoutUpdateCounter += 1;
           if (this.timeoutUpdateCounter >= 10) {
             this.timeoutUpdateCounter = 0;
-            emit("timeout_event", { value: this.timeout });
+            emit('timeout_event', { value: this.timeout });
             this.broadcastState();
           }
           this.timeout -= 10;
           if (this.timeout <= 0) {
             this.stopTimeout();
-            emit("timeout_event", { value: this.timeout });
+            emit('timeout_event', { value: this.timeout });
             this.broadcastState();
           }
         }, 10);
@@ -732,16 +753,16 @@ export default {
       const { $firestore: firestore } = useNuxtApp();
 
       // Reference to a document in Firestore
-      const docRef = doc(firestore, "scoreboard_timer", "stream1");
+      const docRef = doc(firestore, 'scoreboard_timer', 'stream1');
 
       try {
         await updateDoc(docRef, {
           minutes: this.formatedTime, // Fields to update
           // ... more fields to update
         });
-        console.log("Document updated successfully");
+        console.log('Document updated successfully');
       } catch (error) {
-        console.error("Error updating document: ", error);
+        console.error('Error updating document: ', error);
       }
     },
     async playVideosFromDirectory(dirPath: string) {
@@ -751,17 +772,17 @@ export default {
 
         // Filter hanya file .mp4
         const videoFiles = files.filter((file) =>
-          file.name?.toLowerCase().endsWith(".mp4")
+          file.name?.toLowerCase().endsWith('.mp4'),
         );
 
         if (videoFiles.length === 0) {
-          console.error("No MP4 files found in directory");
+          console.error('No MP4 files found in directory');
           return;
         }
 
         console.log(
-          "Found videos:",
-          videoFiles.map((f) => f.name)
+          'Found videos:',
+          videoFiles.map((f) => f.name),
         );
 
         // Simpan playlist
@@ -771,7 +792,7 @@ export default {
         // Play video pertama
         this.playVideo(this.videoPlaylist[0]);
       } catch (error) {
-        console.error("Error reading directory:", error);
+        console.error('Error reading directory:', error);
       }
     },
 
@@ -779,7 +800,7 @@ export default {
       // Convert path ke format yang bisa diakses browser
       const videoSrc = convertFileSrc(videoPath);
 
-      console.log("Playing video:", videoSrc);
+      console.log('Playing video:', videoSrc);
 
       // Show video overlay
       this.isVideoPlaying = true;
@@ -792,7 +813,7 @@ export default {
       if (videoElement) {
         videoElement.src = videoSrc;
         videoElement.play().catch((error) => {
-          console.error("Error playing video:", error);
+          console.error('Error playing video:', error);
         });
         videoElement.onended = () => {
           this.playNextVideo();
@@ -826,13 +847,29 @@ export default {
         timeout: this.formatedTimeout,
         quarter: this.quarter.toString(),
       });
+
+      sendWSOnline({
+        teamAName: this.teamA.name,
+        teamAScore: this.teamA.score,
+        teamAFoul: this.teamA.foul,
+        teamATimeOut: this.teamA.timeout,
+
+        teamBName: this.teamB.name,
+        teamBScore: this.teamB.score,
+        teamBFoul: this.teamB.foul,
+        teamBTimeOut: this.teamB.timeout,
+
+        timer: this.formatedTime,
+        timeout: this.formatedTimeout,
+        quarter: this.quarter.toString(),
+      });
     },
     stopVideo() {
       this.isVideoPlaying = false;
       const videoElement = this.$refs.adVideoPlayer as HTMLVideoElement;
       if (videoElement) {
         videoElement.pause();
-        videoElement.src = "";
+        videoElement.src = '';
       }
     },
   },
@@ -840,9 +877,9 @@ export default {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
-@import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
 
 /* :root {
     --light1: #67bbf7;
@@ -860,11 +897,11 @@ export default {
     src: url("BasementGrotesque.otf") format("opentype");
 } */
 .font-noto {
-  font-family: "Noto Sans", sans-serif;
+  font-family: 'Noto Sans', sans-serif;
   font-weight: 900;
 }
 .font-roboto-condensed {
-  font-family: "Roboto Condensed", sans-serif;
+  font-family: 'Roboto Condensed', sans-serif;
   font-weight: bolder !important;
 }
 div#handle button {
@@ -906,7 +943,7 @@ div#handle {
 }
 
 div.wrapper-score:before {
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   width: calc(100% - 24px);
@@ -954,7 +991,7 @@ div.wrapper-score {
 }
 
 .header-score:after {
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   width: 60%;
@@ -973,7 +1010,7 @@ div.wrapper-score {
 }
 
 .header-score:before {
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   width: 60%;
@@ -1030,7 +1067,7 @@ div.wrapper-score {
 }
 
 .label-score:after {
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   width: calc(100% + 12px);
@@ -1043,7 +1080,7 @@ div.wrapper-score {
 }
 
 .label-score:before {
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   left: 100%;
@@ -1117,7 +1154,7 @@ div.wrapper-score {
 }
 
 .score-count:before {
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   width: calc(100% - 20px);

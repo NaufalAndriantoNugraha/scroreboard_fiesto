@@ -315,9 +315,9 @@
       <h2 class="text-2xl font-bold mb-4 text-gray-800">Konfirmasi Reset</h2>
       <p class="text-gray-600 mb-6 text-lg">
         {{
-          resetType === "timer"
-            ? "Apakah Anda yakin ingin mereset timer?"
-            : "Apakah Anda yakin ingin mereset seluruh game (score, foul, timeout, quarter, dan timer)?"
+          resetType === 'timer'
+            ? 'Apakah Anda yakin ingin mereset timer?'
+            : 'Apakah Anda yakin ingin mereset seluruh game (score, foul, timeout, quarter, dan timer)?'
         }}
       </p>
       <div class="flex justify-end gap-3">
@@ -339,15 +339,15 @@
 </template>
 
 <script lang="ts">
-import { emit, listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/tauri";
-import type { TeamInfo } from "~/types/TeamInfo";
-import { getCurrent } from "@tauri-apps/api/window";
-import { readDir, type FileEntry } from "@tauri-apps/api/fs";
-import { ref } from "vue";
+import { emit, listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/tauri';
+import type { TeamInfo } from '~/types/TeamInfo';
+import { getCurrent } from '@tauri-apps/api/window';
+import { readDir, type FileEntry } from '@tauri-apps/api/fs';
+import { ref } from 'vue';
 
-import { open } from "@tauri-apps/api/dialog";
-import { appDataDir } from "@tauri-apps/api/path";
+import { open } from '@tauri-apps/api/dialog';
+import { appDataDir } from '@tauri-apps/api/path';
 
 type PreviewUrl = {
   scorer_url: string;
@@ -372,14 +372,14 @@ export default {
       if (dir === null) return;
 
       adDirectories.value = (await readDir(dir as string)).filter(
-        (e) => e.children !== undefined
+        (e) => e.children !== undefined,
       );
     }
 
     async function playAdDirectory(dir: FileEntry) {
-      console.log("Playing directory:", dir.name);
+      console.log('Playing directory:', dir.name);
 
-      emit("play_ad_directory", {
+      emit('play_ad_directory', {
         path: dir.path,
         name: dir.name,
       });
@@ -401,36 +401,37 @@ export default {
       isTimeout: false as boolean,
       minimumUpdatePeriod: 200 as number,
       teamA: {
-        name: "Terang",
-        picture: "",
+        name: 'Terang',
+        picture: '',
         score: 0,
         foul: 0,
         timeout: 0,
       } as TeamInfo,
       teamB: {
-        name: "Gelap",
-        picture: "",
+        name: 'Gelap',
+        picture: '',
         score: 0,
         foul: 0,
         timeout: 0,
       } as TeamInfo,
       quarter: 1 as number,
-      previewUrl: "" as string,
+      previewUrl: '' as string,
       isBannerShown: false as boolean,
-      showingBanner: "" as string,
+      showingBanner: '' as string,
       listUrl: {} as PreviewUrl,
-      alarmDuration: "5" as string,
+      alarmDuration: '5' as string,
       serialPorts: [] as string[],
-      selectedPort: "" as string,
+      selectedPort: '' as string,
       isSerialConnecting: false as boolean,
       isSerialConnected: false as boolean,
       isNotifShown: false as boolean,
-      notificationStatus: "" as "success" | "failed",
-      notificationMessage: "" as string,
+      notificationStatus: '' as 'success' | 'failed',
+      notificationMessage: '' as string,
       showResetConfirm: false as boolean,
-      resetType: "" as "timer" | "game" | "",
-      currentVideoPath: "" as string,
-      currentVideoSrc: "" as string,
+      resetType: '' as 'timer' | 'game' | '',
+      currentVideoPath: '' as string,
+      currentVideoSrc: '' as string,
+      // onlineWSIp: "" as string,
     };
   },
   mounted() {
@@ -438,45 +439,45 @@ export default {
     // ws = new WebSocket("ws://192.168.11.1:8070");
     // ws = new WebSocket('ws://192.168.18.251:8070');
 
-    listen("timer_event", (event: any) => {
+    listen('timer_event', (event: any) => {
       this.time = event.payload.value;
       this.isRunning = true;
       this.lastTimeUpdate = Date.now();
     });
 
-    listen("timeout_event", (event: any) => {
+    listen('timeout_event', (event: any) => {
       // console.log(event.payload.value)
       this.timeout = event.payload.value;
       this.isTimeout = true;
       this.lastTimeoutUpdate = Date.now();
     });
 
-    listen("team_a_event", (event: any) => {
+    listen('team_a_event', (event: any) => {
       this.teamA = event.payload.teamA;
-      if (this.teamA.name == "") {
-        this.teamA.name = "Gelap";
+      if (this.teamA.name == '') {
+        this.teamA.name = 'Gelap';
       }
     });
 
-    listen("team_b_event", (event: any) => {
+    listen('team_b_event', (event: any) => {
       this.teamB = event.payload.teamB;
-      if (this.teamB.name == "") {
-        this.teamB.name = "Terang";
+      if (this.teamB.name == '') {
+        this.teamB.name = 'Terang';
       }
     });
 
-    listen("quarter_event", (event: any) => {
+    listen('quarter_event', (event: any) => {
       console.log(event.payload.quarter);
-      invoke("update_quarter", { quarter: `${event.payload.quarter}` });
+      invoke('update_quarter', { quarter: `${event.payload.quarter}` });
       this.quarter = event.payload.quarter;
     });
 
-    listen("timer_stop_event", (event: any) => {
+    listen('timer_stop_event', (event: any) => {
       this.isRunning = false;
       this.triggerAlarm();
     });
 
-    listen("update_config_event", (event: any) => {
+    listen('update_config_event', (event: any) => {
       this.getConfig();
     });
 
@@ -507,18 +508,18 @@ export default {
       const minutes = Math.floor(this.time / (1000 * 60)) % 60;
 
       const strMinutes = String(
-        minutes < 10 ? "0" + minutes.toFixed(0) : minutes.toFixed(0)
+        minutes < 10 ? '0' + minutes.toFixed(0) : minutes.toFixed(0),
       );
       const strSeconds = String(
-        seconds < 10 ? "0" + seconds.toFixed(0) : seconds.toFixed(0)
+        seconds < 10 ? '0' + seconds.toFixed(0) : seconds.toFixed(0),
       );
       const strMilliseconds = String(
         milliseconds < 10
-          ? "0" + milliseconds.toFixed(0)
-          : milliseconds.toFixed(0)
+          ? '0' + milliseconds.toFixed(0)
+          : milliseconds.toFixed(0),
       );
 
-      return strMinutes + ":" + strSeconds + "." + strMilliseconds;
+      return strMinutes + ':' + strSeconds + '.' + strMilliseconds;
     },
     formatedTimeout() {
       const milliseconds = (this.timeout % 1000) / 10;
@@ -526,15 +527,15 @@ export default {
       const minutes = Math.floor(this.timeout / (1000 * 60)) % 60;
 
       const strMinutes = String(
-        minutes < 10 ? "0" + minutes.toFixed(0) : minutes.toFixed(0)
+        minutes < 10 ? '0' + minutes.toFixed(0) : minutes.toFixed(0),
       );
       const strSeconds = String(
-        seconds < 10 ? "0" + seconds.toFixed(0) : seconds.toFixed(0)
+        seconds < 10 ? '0' + seconds.toFixed(0) : seconds.toFixed(0),
       );
       const strMilliseconds = String(
         milliseconds < 10
-          ? "0" + milliseconds.toFixed(0)
-          : milliseconds.toFixed(0)
+          ? '0' + milliseconds.toFixed(0)
+          : milliseconds.toFixed(0),
       );
 
       return strSeconds;
@@ -547,49 +548,49 @@ export default {
   },
   methods: {
     async getConfig() {
-      invoke("get_config").then((state: any) => {
+      invoke('get_config').then((state: any) => {
         this.listUrl = state;
       });
     },
     async startTimer() {
       if (this.time > 0) {
-        emit("start_timer_event", { initialTime: this.time });
+        emit('start_timer_event', { initialTime: this.time });
       } else {
-        emit("start_timer_event", { initialTime: 600000 });
+        emit('start_timer_event', { initialTime: 600000 });
       }
     },
     async openConfig() {
-      invoke("open_config");
+      invoke('open_config');
     },
     async triggerAlarm() {
-      console.log("trigger alarm");
-      invoke("trigger_alarm", {
+      console.log('trigger alarm');
+      invoke('trigger_alarm', {
         portName: this.selectedPort,
         duration: this.alarmDuration,
       });
     },
     async stopTimer() {
-      emit("stop_timer_event");
+      emit('stop_timer_event');
     },
     async startTimerTimeout() {
-      emit("start_timeout_event", { initialTime: 60000 });
+      emit('start_timeout_event', { initialTime: 60000 });
     },
     async stopTimerTimeout() {
-      emit("stop_timeout_event");
+      emit('stop_timeout_event');
     },
     async toggleBanner(
       key:
-        | "scorer_url"
-        | "dark_statistic_url"
-        | "light_statistic_url"
-        | "man_of_the_match_url"
-        | "top_player_url"
+        | 'scorer_url'
+        | 'dark_statistic_url'
+        | 'light_statistic_url'
+        | 'man_of_the_match_url'
+        | 'top_player_url',
     ) {
       if (this.showingBanner == key) {
-        emit("hide_banner", {});
-        this.showingBanner = "";
+        emit('hide_banner', {});
+        this.showingBanner = '';
       } else {
-        emit("show_banner", { url: this.listUrl[key] });
+        emit('show_banner', { url: this.listUrl[key] });
         this.showingBanner = key;
       }
     },
@@ -597,32 +598,32 @@ export default {
       emit(`${event_name}_event`, {});
     },
     async toggleFullscreen() {
-      invoke("toggle_fullscreen");
+      invoke('toggle_fullscreen');
     },
     // async updateQuarter() {
     //     emit('quarter_event', { quarter: this.quarter });
     // },
     async fetchSerialPorts() {
       try {
-        const ports = (await invoke("list_serial_ports")) as string[];
+        const ports = (await invoke('list_serial_ports')) as string[];
         this.serialPorts = ports;
       } catch (error) {
-        console.error("Failed to fetch serial ports:", error);
+        console.error('Failed to fetch serial ports:', error);
       }
     },
     async serialConnect() {
       this.isSerialConnecting = true;
-      let status = await invoke("connect_serial_port", {
+      let status = await invoke('connect_serial_port', {
         portName: this.selectedPort,
       })
         .then((response) => {
           // Success notification
           this.isSerialConnected = true;
-          this.showNotif("success", "Serial port connected");
+          this.showNotif('success', 'Serial port connected');
         })
         .catch((error) => {
           // Error notification
-          this.showNotif("failed", "Failed to connect serial port");
+          this.showNotif('failed', 'Failed to connect serial port');
         })
         .finally(() => {
           this.isSerialConnecting = false;
@@ -630,17 +631,17 @@ export default {
       console.log(status);
     },
     async serialDisconnect() {
-      let status = await invoke("disconnect_serial_port")
+      let status = await invoke('disconnect_serial_port')
         .then((response) => {
           // Success notification
           console.log(response);
           this.isSerialConnected = false;
-          this.showNotif("success", "Serial port disconnected");
+          this.showNotif('success', 'Serial port disconnected');
         })
         .catch((error) => {
           // Error notification
           console.log(error);
-          this.showNotif("failed", "Failed to disconnect serial port");
+          this.showNotif('failed', 'Failed to disconnect serial port');
         });
       console.log(status);
     },
@@ -652,7 +653,7 @@ export default {
     async emitEvent(event: string, data: any) {
       emit(event, data);
     },
-    async showNotif(status: "success" | "failed", message: string) {
+    async showNotif(status: 'success' | 'failed', message: string) {
       this.notificationStatus = status;
       this.notificationMessage = message;
       this.isNotifShown = true;
@@ -661,7 +662,7 @@ export default {
       }, 2000);
     },
     async closeApp() {
-      invoke("close_all_processes");
+      invoke('close_all_processes');
     },
 
     // async resetTimer() {
@@ -679,40 +680,45 @@ export default {
     async resetTimer() {
       // Tampilkan konfirmasi dulu
       this.showResetConfirm = true;
-      this.resetType = "timer";
+      this.resetType = 'timer';
     },
 
     async resetGame() {
       this.showResetConfirm = true;
-      this.resetType = "game";
+      this.resetType = 'game';
     },
 
     async confirmReset() {
-      if (this.resetType === "timer") {
+      if (this.resetType === 'timer') {
         this.time = 0;
-        emit("reset_timer_event");
-        this.showNotif("success", "Timer berhasil direset");
-      } else if (this.resetType === "game") {
-        this.emitEvent("foul_step_event", { step: "reset" });
-        this.emitEvent("score_step_event", { step: "reset" });
-        this.emitEvent("timeout_step_event", { step: "reset" });
-        this.emitEvent("quarter_step_event", { step: "reset" });
+        emit('reset_timer_event');
+        this.showNotif('success', 'Timer berhasil direset');
+      } else if (this.resetType === 'game') {
+        this.emitEvent('foul_step_event', { step: 'reset' });
+        this.emitEvent('score_step_event', { step: 'reset' });
+        this.emitEvent('timeout_step_event', { step: 'reset' });
+        this.emitEvent('quarter_step_event', { step: 'reset' });
         this.time = 0;
-        emit("reset_timer_event");
-        this.showNotif("success", "Game berhasil direset");
+        emit('reset_timer_event');
+        this.showNotif('success', 'Game berhasil direset');
       }
 
       this.showResetConfirm = false;
-      this.resetType = "";
+      this.resetType = '';
     },
 
     async cancelReset() {
       this.showResetConfirm = false;
-      this.resetType = "";
+      this.resetType = '';
     },
     async stopAdVideoToIndex() {
-      emit("stop-ad");
+      emit('stop-ad');
     },
+    // async connectOnline() {
+    //   if (!this.onlineWSIp.valueOf()) return;
+    //   emit("ws:online-ip", this.onlineWSIp.valueOf());
+    //   console.log("Kirim IP Online:", this.onlineWSIp.valueOf());
+    // },
   },
 };
 </script>

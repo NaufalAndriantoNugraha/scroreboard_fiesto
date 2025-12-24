@@ -8,31 +8,41 @@
             </div>
             <div class="flex flex-col rounded bg-blue-300 w-3/4 p-2">
                 <span class="text-4xl font-bold text-center w-full mb-4">Configuration</span>
+                <div class="flex w-full mb-2 items-end gap-2">
+                    <div class="flex-1">
+<label class="block text-gray-700 text-sm font-bold mb-2">
+                           Online WebSocket Address 
+                        </label>
+                        <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Alamat web socket online" v-model="onlineWSIp"></input>
+                    </div>
+                    <button class="bg-green-500 hover:bg-green-600 active:bg-green-900 text-white font-bold py-2 px-4 rounded h-fit" @click="connectOnline">Save</button>
+                </div>
+                <hr class="my-1 h-px border-0 bg-blue-600">
                 <div class="flex w-full mb-2">
-                    <div class="w-1/3 pr-2">
+                    <!-- <div class="w-1/3 pr-2">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="rabbitmq_host">
                             RabbbitMQ Host
                         </label>
                         <input v-model="config.rabbitmq_host"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="rabbitmq_host" type="text">
-                    </div>
-                    <div class="w-1/3">
+                    </div> -->
+                    <!-- <div class="w-1/3">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="rabbitmq_username">
                             RabbbitMQ Username
                         </label>
                         <input v-model="config.rabbitmq_username"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="rabbitmq_username" type="text">
-                    </div>
-                    <div class="w-1/3 pl-2">
+                    </div> -->
+                    <!-- <div class="w-1/3 pl-2">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="rabbitmq_password">
                             RabbitMQ Password
                         </label>
                         <input v-model="config.rabbitmq_password"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="rabbitmq_password" type="password">
-                    </div>
+                    </div> -->
                 </div>
                 <div class="flex w-full mb-2">
                     <div class="w-1/2 pr-2">
@@ -145,6 +155,7 @@
 <script lang="ts">
 import { invoke } from '@tauri-apps/api/tauri';
 import { emit, listen } from '@tauri-apps/api/event';
+import { connectDatabaseEmulator } from 'firebase/database';
 
 export default {
     data() {
@@ -164,7 +175,8 @@ export default {
             preview_url: '',
             show_preview: false,
             is_notif_shown: false,
-            notif_status: ''
+            notif_status: '',
+            onlineWSIp: '' as string,
         }
     },
     methods: {
@@ -214,11 +226,17 @@ export default {
             setTimeout(() => {
                 this.is_notif_shown = false;
             }, 2000);
-        }
+        },
+        async connectOnline() {
+            if (!this.onlineWSIp.valueOf()) return;
+            emit("ws:online-ip", this.onlineWSIp.valueOf());
+            console.log("Kirim IP Online:", this.onlineWSIp.valueOf());
+        },
     },
     async mounted() {
         this.config = await invoke('get_config');
-    }
+    },
+    
 }
 </script>
 
