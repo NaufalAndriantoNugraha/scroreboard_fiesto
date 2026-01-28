@@ -126,6 +126,7 @@
         "height": 400,
         "center": true,
         "resizable": true,
+        "visible": false,
         "fullscreen": false,
         "decorations": false,
         "alwaysOnTop": true,
@@ -136,9 +137,19 @@
       {
         "width": 800,
         "height": 650,
+        "visible": false,
         "url": "/scoreboard_alternative",
         "label": "scoreboard_alternative",
         "title": "Alternative Scoreboard Window"
+      },
+      {
+        "width": 900,
+        "height": 600,
+        "visible": false,
+        "url": "/license_screen",
+        "label": "license_screen",
+        "center": true,
+        "title": "License"
       }
     ]
   }

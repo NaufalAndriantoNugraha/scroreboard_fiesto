@@ -13,8 +13,13 @@ use tokio::time::{sleep, Duration};
 use tokio_tungstenite::accept_async;
 use tokio_tungstenite::tungstenite::Message;
 
+mod decrypt_license;
+mod init_license;
+mod print_with_rust;
 mod rabbitmq;
+mod read_license;
 mod serial;
+mod update_license;
 mod utils;
 mod web_server;
 mod ws_server;
@@ -43,8 +48,38 @@ struct WsState {
 }
 
 #[tauri::command]
+fn init_license(app: tauri::AppHandle) -> Result<(), String> {
+    init_license::init_license(&app)
+}
+
+#[tauri::command]
+fn read_license(app_handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    read_license::read_license(&app_handle)
+}
+
+#[tauri::command]
+fn get_date_from_hash(token: String) -> String {
+    decrypt_license::get_date_from_hash(&token)
+}
+
+#[tauri::command]
+fn get_original_hash(token: String) -> String {
+    decrypt_license::get_original_hash(&token)
+}
+
+#[tauri::command]
+fn update_license(app: tauri::AppHandle, expired_date: String) -> Result<(), String> {
+    update_license::update_license(&app, expired_date)
+}
+
+#[tauri::command]
 fn list_serial_ports() -> Result<Vec<String>, String> {
     serial::list_ports()
+}
+
+#[tauri::command]
+fn print_with_rust(message: String) {
+    print_with_rust::print_with_rust(&message);
 }
 
 #[tauri::command]
@@ -243,44 +278,6 @@ fn get_local_ip() -> String {
     local_ip_address::local_ip().unwrap().to_string()
 }
 
-// #[tauri::command]
-// fn start_integrated_web_server() {
-//     tauri::async_runtime::spawn(async move {
-//         let exe = std::env::current_exe().unwrap();
-//         let root = exe.parent().unwrap().parent().unwrap();
-
-//         // path ke script WebSocket
-//         let script_path = root.join("script/integratedWebSocket.cjs");
-
-//         println!("Running WS server: {:?}", script_path);
-
-//         let _ = std::process::Command::new("node").arg(script_path).spawn();
-//     });
-//     // std::process::Command::new("node")
-//     //     .arg("../../scripts/integratedWebServer.js")
-//     //     .spawn()
-//     //     .is_ok()
-// }
-
-// #[tauri::command]
-// fn start_integrated_web_socket() {
-//     tauri::async_runtime::spawn(async move {
-//         let exe = std::env::current_exe().unwrap();
-//         let root = exe.parent().unwrap().parent().unwrap();
-
-//         // path ke script WebServer
-//         let script_path = root.join("script/integratedWebServer.cjs");
-
-//         println!("Running Web Server: {:?}", script_path);
-
-//         let _ = std::process::Command::new("node").arg(script_path).spawn();
-//     });
-//     // std::process::Command::new("node")
-//     //     .arg("../../scripts/integratedWebSocket.js")
-//     //     .spawn()
-//     //     .is_ok()
-// }
-
 async fn start_ws_server(state: WsState) {
     let listener = TcpListener::bind("127.0.0.1:9000")
         .await
@@ -403,18 +400,24 @@ async fn main() {
             close_all_processes,
             toggle_fullscreen,
             get_local_ip,
+            init_license,
+            read_license,
+            update_license,
+            get_date_from_hash,
+            get_original_hash,
+            print_with_rust,
         ])
         .setup(|app| {
             let splashscreen_window = app.get_window("splashscreen").unwrap();
             // let controller_window = app.get_window("controllerpage").unwrap();
             // let main_windows = app.get_window("indexpage").unwrap();
-            let configuration_windows = app.get_window("configurationpage").unwrap();
+            let _configuration_windows = app.get_window("configurationpage").unwrap();
 
             tauri::async_runtime::spawn(async move {
                 sleep(Duration::from_secs(1)).await;
 
-                splashscreen_window.close().unwrap();
-                configuration_windows.show().unwrap();
+                splashscreen_window.show().unwrap();
+                // configuration_windows.show().unwrap();
                 // main_windows.show().unwrap();
                 // controller_window.show().unwrap();
             });
