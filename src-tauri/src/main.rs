@@ -58,8 +58,8 @@ fn read_license(app_handle: tauri::AppHandle) -> Result<serde_json::Value, Strin
 }
 
 #[tauri::command]
-fn get_date_from_hash(token: String) -> String {
-    decrypt_license::get_date_from_hash(&token)
+fn get_date_from_hash(token: String, info_number: String) -> String {
+    decrypt_license::get_date_from_hash(&token, &info_number)
 }
 
 #[tauri::command]
@@ -68,8 +68,13 @@ fn get_original_hash(token: String) -> String {
 }
 
 #[tauri::command]
-fn update_license(app: tauri::AppHandle, expired_date: String) -> Result<(), String> {
-    update_license::update_license(&app, expired_date)
+fn update_license(app: tauri::AppHandle, expired_date_code: String) -> Result<(), String> {
+    update_license::update_license(&app, expired_date_code)
+}
+
+#[tauri::command]
+fn get_disk_id_windows() -> Option<String> {
+    init_license::get_disk_id_windows()
 }
 
 #[tauri::command]
@@ -406,6 +411,7 @@ async fn main() {
             get_date_from_hash,
             get_original_hash,
             print_with_rust,
+            get_disk_id_windows,
         ])
         .setup(|app| {
             let splashscreen_window = app.get_window("splashscreen").unwrap();

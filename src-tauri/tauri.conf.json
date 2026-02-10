@@ -128,7 +128,7 @@
         "resizable": true,
         "visible": false,
         "fullscreen": false,
-        "decorations": false,
+        "decorations": true,
         "alwaysOnTop": true,
         "url": "/splashscreen",
         "label": "splashscreen",

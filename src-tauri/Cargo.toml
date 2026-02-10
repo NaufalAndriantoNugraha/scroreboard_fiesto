@@ -36,6 +36,8 @@ cbc = "0.1.2"
 base64 = "0.22.1"
 chrono = "0.4.31"
 rand = "0.8.5"
+aes-gcm = "0.10.3"
+md5 = "0.8.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

@@ -8,49 +8,83 @@
 </template>
 
 <script setup lang="ts">
-import { app, invoke } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api';
 import { onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { WebviewWindow, appWindow } from '@tauri-apps/api/window';
-
-const router = useRouter();
+import { emit, listen } from '@tauri-apps/api/event';
 
 interface License {
-    information_number: string;
-    expired_date: string,
+    session_code: string,
 }
 
 function isLicenseExpired(expiredDate: string): boolean {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const parts = expiredDate.split('-').map(Number);
+    const parts = expiredDate.trim().split('-').map(Number);
+    if (parts.some(isNaN)) {
+        return true;
+    }
+
     const exp = new Date(parts[0], parts[1] - 1, parts[2]);
     exp.setHours(0, 0, 0, 0);
 
     return today.getTime() >= exp.getTime();
 }
 
-onMounted(async () => {
+async function checkLicenseLogic() {
     try {
-        console.log('=============== Start!!!!')
         await invoke('init_license');
+
+        const diskId: string = await invoke('get_disk_id_windows');
         const json = await invoke<License>('read_license');
 
-        if (!json.expired_date || isLicenseExpired(json.expired_date.toString())) {
+        const expiredDate: string = await invoke('get_date_from_hash', {
+            token: json.session_code,
+            infoNumber: diskId,
+        });
+
+        const isTokenEmpty = !json.session_code || json.session_code.trim() === '';
+        const isInvalidFormat = expiredDate === 'Invalid' || !expiredDate.includes('-');
+
+        if (isTokenEmpty || isInvalidFormat || isLicenseExpired(expiredDate)) {
             const licenseWindow = WebviewWindow.getByLabel('license_screen');
             await licenseWindow?.show();
+            await appWindow.hide();
+            return;
+        }
+
+        if (expiredDate === 'Invalid' || isLicenseExpired(expiredDate)) {
+            const licenseWindow = WebviewWindow.getByLabel('license_screen');
+            await licenseWindow?.show();
+            await appWindow.hide();
         } else {
+            await emit('license-validation-success');
             const configurationWindow = WebviewWindow.getByLabel('configurationpage');
             await configurationWindow?.show();
-
+            await appWindow.close();
         }
-        await appWindow.close();
     } catch (error) {
         const licenseWindow = WebviewWindow.getByLabel('license_screen')
-        await licenseWindow?.show()
+
+        if (licenseWindow) {
+            await licenseWindow.show();
+            await licenseWindow.unminimize();
+            await licenseWindow.setFocus();
+        }
+
         await appWindow.close();
     }
+}
+
+onMounted(async () => {
+    setTimeout(async () => {
+        await checkLicenseLogic();
+    }, 1000);
+
+    await listen('check-license-now', async () => {
+        await checkLicenseLogic();
+    });
 });
 </script>
 

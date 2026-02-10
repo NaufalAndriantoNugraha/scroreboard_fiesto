@@ -16,7 +16,7 @@
                 </div>
             </div>
             <div class="form">
-                <input type="text" placeholder="Masukkan kode token..." v-model="tokenOrEncryptedCode"></input>
+                <input type="text" placeholder="Masukkan kode token..." v-model="tokenOrEncryptedCode"maxlength="150" ></input>
                 <div class="button" @click="checkEncryptedCode()">Submit</div>
             </div>
         </div>
@@ -166,28 +166,30 @@ input[type='text'] {
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
-import { useRouter } from 'vue-router';
 import { appWindow, WebviewWindow } from '@tauri-apps/api/window';
-import { show } from '@tauri-apps/api/app';
+import { emit, listen } from '@tauri-apps/api/event';
 
 interface License {
-    information_number: string
-    expired_date: string
+    session_code: string
 }
 
 const informationNumber = ref('');
-const expiredDate = ref('');
 const tokenOrEncryptedCode = ref('');
-const router = useRouter();
 
 const showSnackbar = ref(false);
 const snackbarMessage = ref('');
 
 
 onMounted(async () => {
-    const license = await invoke<License>('read_license');
-    informationNumber.value = license.information_number.toString();
-    expiredDate.value = license.expired_date;
+    try {
+        const diskId: string = await invoke('get_disk_id_windows');
+        informationNumber.value = diskId;
+    } catch (error) {
+        console.log(error);
+    }
+    await listen('license-validation-success', async () => {
+        await appWindow.close();
+    });
 })
 
 const copyToClipboard = async () => {
@@ -210,40 +212,31 @@ const showErrorSnackbar = (message: string) => {
 };
 
 const checkEncryptedCode = async () => {
+    const inputRaw = tokenOrEncryptedCode.value.trim();
+    if (!inputRaw) {
+        showErrorSnackbar('Silakan masukkan kode token terlebih dahulu!');
+        return;
+    }
+
+    if (inputRaw.length < 32) {
+        showErrorSnackbar('Format token tidak valid!');
+        return;
+    }
+
     try {
-        const license = await invoke<License>('read_license');
-
-        const inputRaw = tokenOrEncryptedCode.value.trim();
-        if (inputRaw.length !== 72) {
-            showErrorSnackbar(`Panjang kode tidak valid (${inputRaw.length}/72)`);
-            return;
-        }
-
-        const enteredToken: string = await invoke('get_original_hash', {
-            token: inputRaw
+        await invoke('update_license', {
+            expiredDateCode: tokenOrEncryptedCode.value.toString().trim()
         });
 
-        const infoNumberClean = license.information_number.toString().trim();
-        const enteredTokenClean = enteredToken.toString().trim();
+        const splashScreenWindow = WebviewWindow.getByLabel('splashscreen');
 
-        await invoke('print_with_rust', {
-            message: `Membandingkan: [${enteredTokenClean}] dengan [${infoNumberClean}]`
-        });
+        if (splashScreenWindow) {
+            await splashScreenWindow.show();
+            await splashScreenWindow.unminimize();
+            await splashScreenWindow.setFocus();
 
-        if (enteredTokenClean === infoNumberClean) {
-            const expiredDate: string = await invoke('get_date_from_hash', {
-                token: inputRaw,
-            });
-
-            await invoke('update_license', {
-                expiredDate: expiredDate,
-            });
-
-            const configurationWindow = WebviewWindow.getByLabel('configurationpage');
-            await configurationWindow?.show();
-            appWindow.close();
-        } else {
-            showErrorSnackbar('Token tidak cocok dengan Nomor Informasi perangkat ini!');
+            await emit('check-license-now');
+            tokenOrEncryptedCode.value = "";
         }
     } catch (error: any) {
         console.error('System Error:', error);
